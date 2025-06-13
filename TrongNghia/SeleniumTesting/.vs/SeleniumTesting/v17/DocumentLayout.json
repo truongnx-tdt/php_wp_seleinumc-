@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\testcases\\newstest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\testcases\\newstest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\pages\\newspage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\pages\\newspage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\testcases\\membertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\testcases\\membertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\pages\\memberpage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\pages\\memberpage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 306,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "NewsTest.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\NewsTest.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\TestCases\\NewsTest.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\NewsTest.cs",
+              "RelativeToolTip": "SeleniumTesting\\TestCases\\NewsTest.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAkwDAAAABjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-13T10:03:08.581Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "NewsPage.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\NewsPage.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\Pages\\NewsPage.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\NewsPage.cs",
+              "RelativeToolTip": "SeleniumTesting\\Pages\\NewsPage.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAMwC0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-13T09:46:18.768Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MemberTest.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\MemberTest.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\TestCases\\MemberTest.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\MemberTest.cs",
+              "RelativeToolTip": "SeleniumTesting\\TestCases\\MemberTest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-13T09:06:17.336Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MemberPage.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\MemberPage.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\Pages\\MemberPage.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\MemberPage.cs",
+              "RelativeToolTip": "SeleniumTesting\\Pages\\MemberPage.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIcAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-13T09:03:48.141Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
