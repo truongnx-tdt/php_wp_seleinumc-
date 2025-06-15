@@ -1,0 +1,18 @@
+
+# BEGIN Forminator
+# Các nội dung nằm giữa "BEGIN Forminator" và "END Forminator" được tạo ra tự động, và chỉ nên được thay đổi thông qua các filter của WordPress. Mọi thay đổi tới thành phần này có thể sẽ bị mất và ghi đè.
+# Disable parsing of PHP for some server configurations.
+<Files *>
+  SetHandler none
+  SetHandler default-handler
+  Options -ExecCGI
+  Options -Indexes
+  RemoveHandler .cgi .php .php3 .php4 .php5 .phtml .pl .py .pyc .pyo
+</Files>
+<IfModule mod_php5.c>
+  php_flag engine off
+</IfModule>
+<IfModule headers_module>
+  Header set X-Robots-Tag "noindex"
+</IfModule>
+# END Forminator
