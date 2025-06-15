@@ -4,7 +4,7 @@ using SeleniumTesting.Base;
 using SeleniumTesting.Pages;
 using System.Threading;
 
-namespace SeleniumTesting.Tests
+namespace SeleniumTesting.TestCases
 {
     public class LoginTest : BaseTest
     {
