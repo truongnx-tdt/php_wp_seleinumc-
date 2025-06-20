@@ -17,10 +17,13 @@ router.route('/').get(getProducts);
 router.route('/:id').get(getProductById);
 router.route('/:id/reviews').post(protect, createProductReview);
 
-// Admin & Staff routes
-router.post('/create', protect, isStaffOrAdmin, createProduct);
-router.put('/:id/update', protect, isStaffOrAdmin, updateProduct);
+// // Admin & Staff routes
+// router.put('/:id/update', protect, isStaffOrAdmin, updateProduct);
 router.delete('/:id/delete', protect, isStaffOrAdmin, deleteProduct);
+
+// Staff/Admin
+router.post('/', protect, isStaffOrAdmin, createProduct); // POST /api/products
+router.put('/:id', protect, isStaffOrAdmin, updateProduct); // PUT /api/products/:id
 
 // Admin only routes
 router.get('/dashboard-stats', protect, isAdmin, getDashboardStats);

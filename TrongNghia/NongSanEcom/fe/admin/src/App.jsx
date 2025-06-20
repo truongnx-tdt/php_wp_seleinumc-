@@ -6,6 +6,8 @@ import Orders from './pages/Orders.jsx';
 import Products from './pages/Products.jsx';
 import Settings from './pages/Settings.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
+import ProductCreate from './pages/ProductCreate.jsx';
+import ProductEdit from './pages/ProductEdit.jsx';
 
 function PrivateRoute() {
   const user = localStorage.getItem('adminUser');
@@ -22,9 +24,14 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<Users />} />
             <Route path="/orders" element={<Orders />} />
+            {/* products routes */}
             <Route path="/products" element={<Products />} />
+            <Route path="/admin/products/create" element={<ProductCreate />} />
+            <Route path="/admin/products/:id/edit" element={<ProductEdit />} />
+
             <Route path="/settings" element={<Settings />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

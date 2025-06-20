@@ -31,16 +31,31 @@ export const getProductById = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 export const createProduct = asyncHandler(async (req, res) => {
-  const { name, image, description, price, countInStock, category } = req.body;
-  const product = new Product({
-    user: req.user._id,
+  const {
     name,
-    image,
+    images,
     description,
     price,
     countInStock,
     category,
+    unit,
+    origin,
+    discount
+  } = req.body;
+
+  const product = new Product({
+    user: req.user._id,
+    name,
+    images, // array
+    description,
+    price,
+    countInStock,
+    category,
+    unit,
+    origin,
+    discount
   });
+
   const createdProduct = await product.save();
   res.status(201).json(createdProduct);
 });
@@ -49,15 +64,31 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { name, image, description, price, countInStock, category } = req.body;
+  const {
+    name,
+    images,
+    description,
+    price,
+    countInStock,
+    category,
+    unit,
+    origin,
+    discount
+  } = req.body;
+
   const product = await Product.findById(req.params.id);
+
   if (product) {
     product.name = name || product.name;
-    product.image = image || product.image;
+    product.images = images || product.images;
     product.description = description || product.description;
     product.price = price || product.price;
     product.countInStock = countInStock || product.countInStock;
     product.category = category || product.category;
+    product.unit = unit || product.unit;
+    product.origin = origin || product.origin;
+    product.discount = discount ?? product.discount;
+
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } else {
