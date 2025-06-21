@@ -6,19 +6,25 @@ import {
   getOrders,
   updateOrderToPaid,
   updateOrderToDelivered,
+  updateOrderStatus,
+  getOrderStats,
 } from '../controllers/orderController.js';
-import { protect, isAdmin, isStaffOrAdmin } from '../middleware/authMiddleware.js';
+import { protect, requireAdmin, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Public / User specific
+// User routes
 router.route('/').post(protect, addOrder);
 router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/pay').put(protect, updateOrderToPaid);
 
 // Admin & Staff routes
-router.get('/all', protect, isStaffOrAdmin, getOrders);
-router.put('/:id/deliver', protect, isStaffOrAdmin, updateOrderToDelivered);
+router.get('/', protect, requireStaffOrAdmin, getOrders);
+router.put('/:id/deliver', protect, requireStaffOrAdmin, updateOrderToDelivered);
+router.put('/:id/status', protect, requireStaffOrAdmin, updateOrderStatus);
+
+// Admin only routes
+router.get('/stats', protect, requireAdmin, getOrderStats);
 
 export default router; 

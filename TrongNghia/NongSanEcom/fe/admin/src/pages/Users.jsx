@@ -1,171 +1,307 @@
 import React, { useEffect, useState } from 'react';
+import { useApi } from '../hooks/useApi';
+import { usePagination } from '../hooks/usePagination';
+import { API_ENDPOINTS, USER_ROLES } from '../constants';
+import { PageHeader, DataTable, Button, Pagination, Modal } from '../components/common';
 import { toast } from 'react-toastify';
-
-const API_URL = 'http://localhost:5000/api/auth';
-
-const initialForm = { name: '', email: '', password: '', role: 'staff' };
 
 const Users = () => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(initialForm);
-  const [editId, setEditId] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: USER_ROLES.STAFF,
+  });
 
-  const token = JSON.parse(localStorage.getItem('adminUser'))?.token;
+  const { get, post, put, delete: deleteApi, loading, error } = useApi();
+  const { pagination, setPage, updatePagination } = usePagination();
+
+  useEffect(() => {
+    fetchUsers();
+  }, [pagination.page]);
 
   const fetchUsers = async () => {
-    setLoading(true);
     try {
-      const res = await fetch(API_URL + '/get-users', {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await get(`${API_ENDPOINTS.USERS.LIST}?page=${pagination.page}&limit=${pagination.limit}`);
+      const { data } = response;
+      
+      setUsers(data.users || []);
+      updatePagination({
+        total: data.pagination.total,
+        totalPages: data.pagination.totalPages,
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Không lấy được danh sách user');
-      }
-      setUsers(await res.json());
     } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching users:', err);
     }
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
 
-  const openAdd = () => {
-    setForm(initialForm);
-    setEditId(null);
+  const openAddModal = () => {
+    setEditingUser(null);
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: USER_ROLES.STAFF,
+    });
     setShowModal(true);
   };
-  const openEdit = (user) => {
-    setForm({ name: user.name, email: user.email, password: '', role: user.role });
-    setEditId(user._id);
+
+  const openEditModal = (user) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      password: '',
+      role: user.role,
+    });
     setShowModal(true);
   };
+
   const closeModal = () => {
     setShowModal(false);
-    setForm(initialForm);
-    setEditId(null);
+    setEditingUser(null);
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: USER_ROLES.STAFF,
+    });
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn chắc chắn muốn xóa user này?')) return;
-    try {
-      const res = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Xóa thất bại');
-      }
-      toast.success('Xóa user thành công!');
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.message);
-    }
+  const handleFormChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
+    
     try {
-      let res;
-      const body = { name: form.name, email: form.email, role: form.role };
-      if (editId) {
-        res = await fetch(`${API_URL}/${editId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        });
+      if (editingUser) {
+        // Update user
+        const updateData = { name: formData.name, email: formData.email, role: formData.role };
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+        
+        await put(API_ENDPOINTS.USERS.UPDATE(editingUser._id), updateData);
+        toast.success('Cập nhật người dùng thành công!');
       } else {
-        body.password = form.password;
-        res = await fetch(`${API_URL}/add-user`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        });
+        // Create user
+        await post(API_ENDPOINTS.USERS.CREATE, formData);
+        toast.success('Thêm người dùng thành công!');
       }
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Lưu thất bại');
-      }
-      toast.success(editId ? 'Sửa user thành công!' : 'Thêm user thành công!');
+      
       closeModal();
       fetchUsers();
     } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSaving(false);
+      const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra!';
+      toast.error(errorMessage);
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
+      try {
+        await deleteApi(API_ENDPOINTS.USERS.DELETE(id));
+        toast.success('Xóa người dùng thành công');
+        fetchUsers();
+      } catch (err) {
+        console.error('Error deleting user:', err);
+      }
+    }
+  };
+
+  const getRoleLabel = (role) => {
+    const roleLabels = {
+      admin: 'Quản trị viên',
+      staff: 'Nhân viên',
+      customer: 'Khách hàng',
+    };
+    return roleLabels[role] || role;
+  };
+
+  const getRoleBadge = (role) => {
+    const badgeClasses = {
+      admin: 'bg-red-100 text-red-800',
+      staff: 'bg-blue-100 text-blue-800',
+      customer: 'bg-gray-100 text-gray-800',
+    };
+    
+    return (
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${badgeClasses[role] || badgeClasses.customer}`}>
+        {getRoleLabel(role)}
+      </span>
+    );
+  };
+
+  const columns = [
+    { key: 'name', header: 'Họ tên' },
+    { key: 'email', header: 'Email' },
+    { key: 'phone', header: 'Số điện thoại', render: (phone) => phone || '-' },
+    { 
+      key: 'role', 
+      header: 'Vai trò', 
+      render: (role) => getRoleBadge(role)
+    },
+    {
+      key: 'createdAt',
+      header: 'Ngày tạo',
+      render: (createdAt) => {
+        if (!createdAt) return '-';
+        return new Date(createdAt).toLocaleDateString('vi-VN');
+      }
+    },
+    {
+      key: 'actions',
+      header: 'Hành động',
+      align: 'center',
+      render: (_, user) => (
+        <div className="space-x-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openEditModal(user)}
+          >
+            Sửa
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => handleDelete(user._id)}
+            disabled={user.role === USER_ROLES.ADMIN}
+          >
+            Xóa
+          </Button>
+        </div>
+      )
+    }
+  ];
+
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4 flex items-center justify-between">Quản trị người dùng
-        <button className="bg-green-600 text-white px-4 py-2 rounded ml-4" onClick={openAdd}>Thêm mới</button>
-      </h2>
-      {loading ? <div>Đang tải...</div> : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded shadow text-sm sm:text-base">
-            <thead>
-              <tr>
-                <th className="py-2 px-2 sm:px-4 border-b">Tên</th>
-                <th className="py-2 px-2 sm:px-4 border-b">Email</th>
-                <th className="py-2 px-2 sm:px-4 border-b">Vai trò</th>
-                <th className="py-2 px-2 sm:px-4 border-b">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u._id}>
-                  <td className="py-2 px-2 sm:px-4 border-b">{u.name}</td>
-                  <td className="py-2 px-2 sm:px-4 border-b">{u.email}</td>
-                  <td className="py-2 px-2 sm:px-4 border-b capitalize">{u.role}</td>
-                  <td className="py-2 px-2 sm:px-4 border-b">
-                    <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2" onClick={() => openEdit(u)}>Sửa</button>
-                    <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(u._id)}>Xóa</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+    <div className="max-w-7xl mx-auto">
+      <PageHeader
+        title="Quản lý người dùng"
+        subtitle="Quản lý tài khoản người dùng trong hệ thống"
+        action={true}
+        actionLabel="+ Thêm người dùng"
+        onAction={openAddModal}
+      />
+
+      <DataTable
+        columns={columns}
+        data={users}
+        loading={loading}
+        error={error}
+        emptyMessage="Chưa có người dùng nào."
+        showIndex={true}
+      />
+
+      <div className="mt-6">
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          itemsPerPage={pagination.limit}
+          onPageChange={handlePageChange}
+        />
+      </div>
+
       {/* Modal thêm/sửa user */}
-      {showModal && (
-        <div className="fixed inset-0 bg-d6d2cc bg-opacity-20 flex items-center justify-center z-50">
-          <form onSubmit={handleSubmit} className="bg-white rounded shadow-lg p-6 w-full max-w-md relative">
-            <button type="button" className="absolute top-2 right-2 text-gray-500 text-2xl" onClick={closeModal}>×</button>
-            <h3 className="text-lg font-bold mb-4">{editId ? 'Sửa user' : 'Thêm user'}</h3>
-            <div className="mb-3">
-              <label className="block mb-1">Tên</label>
-              <input className="w-full border rounded px-3 py-2" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Email</label>
-              <input type="email" className="w-full border rounded px-3 py-2" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
-            </div>
-            {!editId && (
-              <div className="mb-3">
-                <label className="block mb-1">Mật khẩu</label>
-                <input type="password" className="w-full border rounded px-3 py-2" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
-              </div>
-            )}
-            <div className="mb-4">
-              <label className="block mb-1">Vai trò</label>
-              <select className="w-full border rounded px-3 py-2" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                <option value="staff">Nhân viên</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded w-full" disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu'}</button>
-          </form>
-        </div>
-      )}
+      <Modal
+        isOpen={showModal}
+        onClose={closeModal}
+        title={editingUser ? 'Sửa người dùng' : 'Thêm người dùng mới'}
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4 z-10">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Họ tên *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email *
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mật khẩu {!editingUser && '*'}
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              required={!editingUser}
+              minLength={6}
+              placeholder={editingUser ? 'Để trống nếu không đổi mật khẩu' : ''}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Vai trò *
+            </label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            >
+              <option value={USER_ROLES.STAFF}>Nhân viên</option>
+              <option value={USER_ROLES.ADMIN}>Quản trị viên</option>
+            </select>
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeModal}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              loading={loading}
+            >
+              {editingUser ? 'Cập nhật' : 'Thêm mới'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

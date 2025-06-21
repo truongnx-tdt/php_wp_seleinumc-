@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import User from './models/User.js';
-import connectDB from './config/db.js';
+import { connectDB } from './config/db.js';
+import { logger } from './utils/logger.js';
 
 dotenv.config();
 
@@ -39,10 +40,10 @@ const importData = async () => {
     });
 
     await User.insertMany(createdUsers);
-    console.log('User data seeded!');
-    process.exit();
+    logger.info('User data seeded successfully', { count: createdUsers.length });
+    process.exit(0);
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to seed user data', error);
     process.exit(1);
   }
 };

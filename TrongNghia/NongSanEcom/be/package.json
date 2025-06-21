@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "seed": "node src/seedUsers.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["ecommerce", "nongsan", "api", "nodejs", "express", "mongodb"],
+  "author": "NongSan Team",
   "license": "ISC",
-  "description": "",
+  "description": "Backend API for NongSan E-commerce application",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.37.3",
@@ -24,7 +25,9 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "paypal-rest-sdk": "^1.8.1",
-    "streamifier": "^0.1.1"
+    "streamifier": "^0.1.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
