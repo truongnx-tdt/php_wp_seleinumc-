@@ -1,0 +1,23 @@
+{
+  "name": "nongsan-ecom",
+  "version": "1.0.0",
+  "description": "NongSan E-commerce Full Stack Application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:be\" \"npm run dev:admin\" \"npm run dev:client\"",
+    "dev:be": "cd be && npm start",
+    "dev:admin": "cd fe/admin && npm run dev",
+    "dev:client": "cd fe/client && npm run dev",
+    "install:all": "npm install && cd be && npm install && cd ../fe/admin && npm install && cd ../client && npm install",
+    "build": "npm run build:admin && npm run build:client",
+    "build:admin": "cd fe/admin && npm run build",
+    "build:client": "cd fe/client && npm run build",
+    "start": "cd be && npm start"
+  },
+  "keywords": ["ecommerce", "nongsan", "fullstack", "react", "nodejs"],
+  "author": "NongSan Team",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
