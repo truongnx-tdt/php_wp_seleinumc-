@@ -6,7 +6,8 @@ import {
   deleteUser, 
   updateUser, 
   getUserProfile, 
-  updateUserProfile 
+  updateUserProfile, 
+  customerRegister
 } from '../controllers/authController.js';
 import { protect, isAdmin } from '../middleware/authMiddleware.js';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 // === Public Routes ===
 // For Client App login (and Admin App, will be checked in controller)
 router.post('/login', authUser); 
+router.post('/register', customerRegister);
 
 // === User's own protected routes ===
 router.route('/profile')

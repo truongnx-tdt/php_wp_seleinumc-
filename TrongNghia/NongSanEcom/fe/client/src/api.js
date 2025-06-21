@@ -1,29 +1,40 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export async function registerUser(data) {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
+const API_ENDPOINTS = {
+  REGISTER: '/api/auth/register',
+  LOGIN: '/api/auth/login',
+  PROFILE: '/api/auth/profile'
+};
+
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Có lỗi xảy ra');
+  }
+  return response.json();
+};
+
+export const registerUser = async (data) => {
+  const response = await fetch(`${API_URL}${API_ENDPOINTS.REGISTER}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Đăng ký thất bại');
-  return res.json();
-}
+  return handleResponse(response);
+};
 
-export async function loginUser(data) {
-  const res = await fetch(`${API_URL}/api/auth/login`, {
+export const loginUser = async (data) => {
+  const response = await fetch(`${API_URL}${API_ENDPOINTS.LOGIN}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Đăng nhập thất bại');
-  return res.json();
-}
+  return handleResponse(response);
+};
 
-export async function getUserProfile(token) {
-  const res = await fetch(`${API_URL}/api/auth/profile`, {
+export const getUserProfile = async (token) => {
+  const response = await fetch(`${API_URL}${API_ENDPOINTS.PROFILE}`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error('Lấy thông tin thất bại');
-  return res.json();
-} 
+  return handleResponse(response);
+}; 
