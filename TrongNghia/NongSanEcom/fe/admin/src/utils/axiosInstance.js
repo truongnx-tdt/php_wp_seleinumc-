@@ -19,9 +19,6 @@ API.interceptors.response.use(
     } else if (error.response?.status >= 500) {
       toast.error('Lỗi server. Vui lòng thử lại sau.');
     } 
-    // The component that made the call will handle other errors (like 400 or 404)
-    // using the rejected promise.
-    
     return Promise.reject(error);
   }
 );

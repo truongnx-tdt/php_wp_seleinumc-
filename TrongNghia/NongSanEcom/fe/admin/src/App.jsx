@@ -9,8 +9,6 @@ import Users from './pages/Users.jsx';
 import Orders from './pages/Orders.jsx';
 import Products from './pages/Products.jsx';
 import Settings from './pages/Settings.jsx';
-import ProductCreate from './pages/ProductCreate.jsx';
-import ProductEdit from './pages/ProductEdit.jsx';
 
 // Layouts
 import AdminLayout from './layouts/AdminLayout.jsx';
@@ -31,7 +29,7 @@ function App() {
         <CookieChecker />
         <Routes>
           <Route path="/login" element={<Login />} />
-          
+
           {/* Routes accessible to authenticated users (staff, admin only) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
@@ -39,10 +37,8 @@ function App() {
               <Route element={<StaffRoute />}>
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/products" element={<Products />} />
-                <Route path="/admin/products/create" element={<ProductCreate />} />
-                <Route path="/admin/products/:id/edit" element={<ProductEdit />} />
               </Route>
-              
+
               {/* Routes accessible only to admin users */}
               <Route element={<AdminRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -51,14 +47,14 @@ function App() {
               </Route>
             </Route>
           </Route>
-          
+
           {/* Root route - redirect based on localStorage */}
           <Route path="/" element={<RootRedirect />} />
-          
+
           {/* Fallback route - redirect to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-        
+
         <ToastContainer
           position="top-right"
           autoClose={3000}
@@ -80,7 +76,7 @@ function App() {
 const RootRedirect = () => {
   // Kiểm tra localStorage thay vì gọi API
   const user = getCurrentUser();
-  
+
   // Nếu có user trong localStorage, redirect dựa trên role
   if (user) {
     if (user.role === 'admin') {
@@ -89,7 +85,7 @@ const RootRedirect = () => {
       return <Navigate to="/orders" replace />;
     }
   }
-  
+
   // Nếu không có user, chuyển về login
   return <Navigate to="/login" replace />;
 };
