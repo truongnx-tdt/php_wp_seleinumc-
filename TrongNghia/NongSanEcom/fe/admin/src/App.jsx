@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -15,32 +15,47 @@ import ProductEdit from './pages/ProductEdit.jsx';
 // Layouts
 import AdminLayout from './layouts/AdminLayout.jsx';
 
-// Utils
-import { isAuthenticated } from './utils/auth';
+// Protected Routes
+import { ProtectedRoute, AdminRoute, StaffRoute } from './components/common/ProtectedRoute.jsx';
 
-// Protected Route Component
-function PrivateRoute() {
-  return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
-}
+// Components
+import CookieChecker from './components/common/CookieChecker.jsx';
+
+// Utils
+import { getCurrentUser } from './utils/auth.js';
 
 function App() {
   return (
     <Router>
       <div className="App">
+        <CookieChecker />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route element={<PrivateRoute />}>
+          
+          {/* Routes accessible to authenticated users (staff, admin only) */}
+          <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/admin/products/create" element={<ProductCreate />} />
-              <Route path="/admin/products/:id/edit" element={<ProductEdit />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* Routes accessible to staff and admin */}
+              <Route element={<StaffRoute />}>
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/admin/products/create" element={<ProductCreate />} />
+                <Route path="/admin/products/:id/edit" element={<ProductEdit />} />
+              </Route>
+              
+              {/* Routes accessible only to admin users */}
+              <Route element={<AdminRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/settings" element={<Settings />} />
+              </Route>
             </Route>
           </Route>
+          
+          {/* Root route - redirect based on localStorage */}
+          <Route path="/" element={<RootRedirect />} />
+          
+          {/* Fallback route - redirect to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         
@@ -60,5 +75,23 @@ function App() {
     </Router>
   );
 }
+
+// Component để xử lý redirect cho route /
+const RootRedirect = () => {
+  // Kiểm tra localStorage thay vì gọi API
+  const user = getCurrentUser();
+  
+  // Nếu có user trong localStorage, redirect dựa trên role
+  if (user) {
+    if (user.role === 'admin') {
+      return <Navigate to="/dashboard" replace />;
+    } else if (user.role === 'staff') {
+      return <Navigate to="/orders" replace />;
+    }
+  }
+  
+  // Nếu không có user, chuyển về login
+  return <Navigate to="/login" replace />;
+};
 
 export default App;

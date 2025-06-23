@@ -17,51 +17,76 @@ import {
 } from '../utils/paginate.js';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, ORDER_STATUS } from '../constants/index.js';
 import { logger } from '../utils/logger.js';
+import Cart from '../models/Cart.js';
+import User from '../models/User.js';
 
 /**
- * @desc    Create new order
+ * @desc    Create new order from cart
  * @route   POST /api/orders
  * @access  Private
  */
-export const addOrder = asyncHandler(async (req, res) => {
-  const sanitizedData = sanitizeInput(req.body);
-  
-  // Validate input
-  const validationErrors = validateOrder(sanitizedData);
-  if (validationErrors) {
-    return validationErrorResponse(res, validationErrors);
+export const addOrderItems = asyncHandler(async (req, res) => {
+  const { paymentMethod, shippingAddressId } = req.body;
+  const userId = req.user._id;
+
+  const cart = await Cart.findOne({ user: userId }).populate('items.product');
+  const user = await User.findById(userId);
+
+  if (!cart || cart.items.length === 0) {
+    res.status(400);
+    throw new Error('No items in cart');
   }
 
-  const { 
-    orderItems, 
-    shippingAddress, 
-    paymentMethod, 
-    itemsPrice, 
-    taxPrice, 
-    shippingPrice, 
-    totalPrice 
-  } = sanitizedData;
+  let shippingAddress;
+  if (shippingAddressId) {
+    shippingAddress = user.addresses.id(shippingAddressId);
+  } else {
+    shippingAddress = user.addresses.find(addr => addr.isDefault);
+  }
+
+  if (!shippingAddress) {
+    res.status(400);
+    throw new Error('No shipping address selected or default address found');
+  }
+
+  const orderItems = cart.items.map(item => ({
+    name: item.product.name,
+    qty: item.quantity,
+    image: item.product.images[0],
+    price: item.price,
+    product: item.product._id,
+  }));
+
+  const itemsPrice = cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const shippingPrice = itemsPrice > 500000 ? 0 : 30000; // Example shipping logic
+  const taxPrice = 0; // No tax for now
+  const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
   const order = new Order({
-    user: req.user._id,
+    user: userId,
     orderItems,
-    shippingAddress,
+    shippingAddress: {
+      street: shippingAddress.street,
+      city: shippingAddress.city,
+      district: shippingAddress.district,
+      ward: shippingAddress.ward,
+      postalCode: shippingAddress.postalCode,
+      country: shippingAddress.country,
+    },
     paymentMethod,
-    itemsPrice: parseFloat(itemsPrice),
-    taxPrice: parseFloat(taxPrice) || 0,
-    shippingPrice: parseFloat(shippingPrice) || 0,
-    totalPrice: parseFloat(totalPrice),
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
   });
 
   const createdOrder = await order.save();
 
-  logger.info('Order created successfully', {
-    orderId: createdOrder._id,
-    userId: req.user._id,
-    totalPrice: createdOrder.totalPrice,
-  });
+  // Clear cart after order is created
+  cart.items = [];
+  await cart.save();
 
-  return createdResponse(res, createdOrder, SUCCESS_MESSAGES.ORDER_CREATED);
+  res.status(201).json(createdOrder);
 });
 
 /**
@@ -72,16 +97,12 @@ export const addOrder = asyncHandler(async (req, res) => {
 export const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate('user', 'name email');
   
-  if (!order) {
-    return notFoundResponse(res, ERROR_MESSAGES.ORDER_NOT_FOUND);
+  if (order && (req.user.role === 'admin' || order.user._id.equals(req.user._id))) {
+    res.json(order);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
   }
-
-  // Check authorization
-  if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return forbiddenResponse(res, 'Not authorized to view this order');
-  }
-
-  return successResponse(res, order);
 });
 
 /**
@@ -153,37 +174,22 @@ export const getOrders = asyncHandler(async (req, res) => {
 export const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   
-  if (!order) {
-    return notFoundResponse(res, ERROR_MESSAGES.ORDER_NOT_FOUND);
-  }
-
-  // Check if user owns this order or is admin
-  if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return forbiddenResponse(res, 'Not authorized to update this order');
-  }
-
-  order.isPaid = true;
-  order.paidAt = Date.now();
-  order.status = ORDER_STATUS.CONFIRMED;
-  
-  if (req.body.paymentResult) {
-    order.paymentResult = {
-      id: req.body.paymentResult.id,
-      status: req.body.paymentResult.status,
-      update_time: req.body.paymentResult.update_time,
-      email_address: req.body.paymentResult.email_address,
+  if (order) {
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = { // This data would come from the payment provider (e.g. PayPal, Stripe)
+      id: req.body.id,
+      status: req.body.status,
+      update_time: req.body.update_time,
+      email_address: req.body.email_address
     };
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
   }
-
-  const updatedOrder = await order.save();
-
-  logger.info('Order marked as paid', {
-    orderId: order._id,
-    updatedBy: req.user._id,
-    paymentMethod: order.paymentMethod,
-  });
-
-  return successResponse(res, updatedOrder, 'Order marked as paid');
 });
 
 /**
@@ -218,7 +224,6 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
   const order = await Order.findById(req.params.id);
   
   if (!order) {

@@ -1,171 +1,100 @@
 import jwt from 'jsonwebtoken';
+import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
-import { asyncHandler } from './errorMiddleware.js';
-import { unauthorizedResponse, forbiddenResponse } from '../utils/responseHelper.js';
-import { USER_ROLES, ERROR_MESSAGES } from '../constants/index.js';
+import { USER_ROLES } from '../constants/index.js';
 import { logger } from '../utils/logger.js';
 
 /**
- * Protect routes - require authentication
+ * Middleware to protect routes by requiring authentication.
+ * It verifies the JWT token from the http-only cookie.
  */
-export const protect = asyncHandler(async (req, res, next) => {
-  let token;
+const protect = asyncHandler(async (req, res, next) => {
+    let token = req.cookies.jwt;
 
-  // Check for token in Authorization header
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-  // Check for token in cookies
-  else if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  }
-
-  if (!token) {
-    logger.warn('Authentication failed - No token provided', {
-      url: req.originalUrl,
-      ip: req.ip,
-    });
-    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
-  }
-
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET.replace(/'/g, ''));
-    
-    // Get user from token
-    const user = await User.findById(decoded.id).select('-password');
-    
-    if (!user) {
-      logger.warn('Authentication failed - User not found', {
-        userId: decoded.id,
-        url: req.originalUrl,
-      });
-      return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
+    if (!token) {
+        res.status(401);
+        throw new Error('Not authorized, no token');
     }
 
-    // Check if user is active (you can add an isActive field to User model)
-    // if (!user.isActive) {
-    //   return unauthorizedResponse(res, 'User account is deactivated');
-    // }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    logger.warn('Authentication failed - Invalid token', {
-      error: error.message,
-      url: req.originalUrl,
-      ip: req.ip,
-    });
-    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
-  }
-});
-
-/**
- * Require admin role
- */
-export const requireAdmin = (req, res, next) => {
-  if (!req.user) {
-    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
-  }
-
-  if (req.user.role !== USER_ROLES.ADMIN) {
-    logger.warn('Access denied - Admin role required', {
-      userId: req.user._id,
-      userRole: req.user.role,
-      url: req.originalUrl,
-    });
-    return forbiddenResponse(res, ERROR_MESSAGES.FORBIDDEN);
-  }
-
-  next();
-};
-
-/**
- * Require staff or admin role
- */
-export const requireStaffOrAdmin = (req, res, next) => {
-  if (!req.user) {
-    return unauthorizedResponse(res, ERROR_MESSAGES.UNAUTHORIZED);
-  }
-
-  if (req.user.role !== USER_ROLES.ADMIN && req.user.role !== USER_ROLES.STAFF) {
-    logger.warn('Access denied - Staff or Admin role required', {
-      userId: req.user._id,
-      userRole: req.user.role,
-      url: req.originalUrl,
-    });
-    return forbiddenResponse(res, ERROR_MESSAGES.FORBIDDEN);
-  }
-
-  next();
-};
-
-/**
- * Optional authentication - doesn't fail if no token
- */
-export const optionalAuth = asyncHandler(async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  }
-
-  if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET.replace(/'/g, ''));
-      const user = await User.findById(decoded.id).select('-password');
-      if (user) {
-        req.user = user;
-      }
-    } catch (error) {
-      // Token is invalid, but we don't fail the request
-      logger.debug('Optional auth failed - Invalid token', {
-        error: error.message,
-        url: req.originalUrl,
-      });
-    }
-  }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await User.findById(decoded.userId).select('-password');
 
-  next();
+        if (!req.user) {
+            res.status(401);
+            throw new Error('Not authorized, user not found for this token');
+        }
+        next();
+    } catch (error) {
+        logger.warn('Token verification failed', { error: error.message, ip: req.ip });
+        res.status(401);
+        throw new Error('Not authorized, token failed');
+    }
 });
 
 /**
- * Rate limiting middleware (basic implementation)
+ * Middleware to require admin role.
+ * Should be used after `protect`.
  */
-export const rateLimit = (windowMs = 15 * 60 * 1000, max = 100) => {
-  const requests = new Map();
-
-  return (req, res, next) => {
-    const key = req.ip;
-    const now = Date.now();
-    const windowStart = now - windowMs;
-
-    // Clean old entries
-    if (requests.has(key)) {
-      const userRequests = requests.get(key).filter(time => time > windowStart);
-      requests.set(key, userRequests);
+const requireAdmin = (req, res, next) => {
+    if (req.user && req.user.role === USER_ROLES.ADMIN) {
+        next();
     } else {
-      requests.set(key, []);
+        res.status(403);
+        throw new Error('Not authorized as an admin');
     }
+};
 
-    const userRequests = requests.get(key);
-
-    if (userRequests.length >= max) {
-      logger.warn('Rate limit exceeded', {
-        ip: req.ip,
-        url: req.originalUrl,
-        requests: userRequests.length,
-      });
-      return res.status(429).json({
-        success: false,
-        message: 'Too many requests, please try again later.',
-        timestamp: new Date().toISOString(),
-      });
+/**
+ * Middleware to require staff or admin role.
+ * Should be used after `protect`.
+ */
+const requireStaffOrAdmin = (req, res, next) => {
+    if (req.user && (req.user.role === USER_ROLES.STAFF || req.user.role === USER_ROLES.ADMIN)) {
+        next();
+    } else {
+        res.status(403);
+        throw new Error('Not authorized as a staff or admin');
     }
+};
 
-    userRequests.push(now);
-    next();
-  };
-}; 
+
+// --- Rate Limiting ---
+// This state is stored in memory at the module level.
+const requests = new Map();
+
+/**
+ * Creates a rate-limiting middleware.
+ * @param {number} windowMs - The time window in milliseconds.
+ * @param {number} max - The max number of requests allowed in the time window.
+ */
+const rateLimitFunction = (windowMs = 15 * 60 * 1000, max = 200) => {
+    return (req, res, next) => {
+        const ip = req.ip;
+        const now = Date.now();
+        const windowStart = now - windowMs;
+
+        // Get records for this IP, or initialize
+        let records = requests.get(ip) || [];
+
+        // Filter out records that are outside the current window
+        records = records.filter(timestamp => timestamp > windowStart);
+
+        // Check if limit is exceeded
+        if (records.length >= max) {
+            logger.warn('Rate limit exceeded', { ip: ip, url: req.originalUrl });
+            return res.status(429).json({ message: 'Too many requests, please try again later.' });
+        }
+
+        // Add the current request's timestamp
+        records.push(now);
+        requests.set(ip, records);
+
+        next();
+    };
+};
+
+// Create an instance of the rate limiter
+const rateLimit = rateLimitFunction();
+
+export { protect, requireAdmin, requireStaffOrAdmin, rateLimit };

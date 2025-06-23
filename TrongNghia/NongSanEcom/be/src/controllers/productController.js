@@ -20,76 +20,45 @@ import User from '../models/User.js';
 import Order from '../models/Order.js';
 
 /**
- * @desc    Get all products (with pagination)
+ * @desc    Fetch all products with filtering, pagination, and sorting
  * @route   GET /api/products
  * @access  Public
  */
 export const getProducts = asyncHandler(async (req, res) => {
-  const { search = '', category = '', minPrice = '', maxPrice = '', sort = '' } = req.query;
-  const paginationParams = parsePaginationParams(req.query);
-  
-  // Build filter
-  const filter = {};
-  if (search) {
-    filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-    ];
-  }
-  if (category) {
-    filter.category = category;
-  }
-  if (minPrice || maxPrice) {
-    filter.price = {};
-    if (minPrice) filter.price.$gte = parseFloat(minPrice);
-    if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
-  }
+    const pageSize = 12;
+    const page = Number(req.query.pageNumber) || 1;
 
-  // Build sort
-  let sortOptions = { createdAt: -1 };
-  if (sort) {
-    switch (sort) {
-      case 'price_asc':
-        sortOptions = { price: 1 };
-        break;
-      case 'price_desc':
-        sortOptions = { price: -1 };
-        break;
-      case 'name_asc':
-        sortOptions = { name: 1 };
-        break;
-      case 'name_desc':
-        sortOptions = { name: -1 };
-        break;
-      case 'rating_desc':
-        sortOptions = { rating: -1 };
-        break;
-      default:
-        sortOptions = { createdAt: -1 };
-    }
-  }
+    const keyword = req.query.keyword ? {
+        name: {
+            $regex: req.query.keyword,
+            $options: 'i'
+        }
+    } : {};
+    
+    const category = req.query.category ? { category: req.query.category } : {};
 
-  const result = await getPaginatedResults(Product, filter, paginationParams, sortOptions);
-  
-  return successResponse(res, {
-    products: result.data,
-    pagination: result.pagination,
-  });
+    const count = await Product.countDocuments({ ...keyword, ...category });
+    const products = await Product.find({ ...keyword, ...category })
+        .populate('category', 'name')
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
+
+    res.json({ products, page, pages: Math.ceil(count / pageSize) });
 });
 
 /**
- * @desc    Get single product
+ * @desc    Fetch single product
  * @route   GET /api/products/:id
  * @access  Public
  */
 export const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
-  
-  if (!product) {
-    return notFoundResponse(res, ERROR_MESSAGES.PRODUCT_NOT_FOUND);
-  }
-
-  return successResponse(res, product);
+    const product = await Product.findById(req.params.id).populate('reviews.user', 'name').populate('category', 'name');
+    if (product) {
+        res.json(product);
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
 });
 
 /**
@@ -98,48 +67,35 @@ export const getProductById = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const createProduct = asyncHandler(async (req, res) => {
-  const sanitizedData = sanitizeInput(req.body);
-  
-  // Validate input
-  const validationErrors = validateProduct(sanitizedData);
-  if (validationErrors) {
-    return validationErrorResponse(res, validationErrors);
-  }
+    const {
+        name,
+        price,
+        description,
+        images,
+        countInStock,
+        category,
+        unit,
+        origin,
+        isOrganic,
+        discount
+    } = req.body;
 
-  const {
-    name,
-    images,
-    description,
-    price,
-    countInStock,
-    category,
-    unit,
-    origin,
-    discount
-  } = sanitizedData;
+    const product = new Product({
+        name,
+        price,
+        user: req.user._id,
+        images,
+        countInStock,
+        description,
+        category,
+        unit,
+        origin,
+        isOrganic,
+        discount
+    });
 
-  const product = new Product({
-    user: req.user._id,
-    name,
-    images: images || [],
-    description,
-    price: parseFloat(price),
-    countInStock: parseInt(countInStock) || 0,
-    category,
-    unit,
-    origin,
-    discount: discount ? parseFloat(discount) : 0
-  });
-
-  const createdProduct = await product.save();
-
-  logger.info('Product created successfully', {
-    productId: createdProduct._id,
-    createdBy: req.user._id,
-    productName: createdProduct.name,
-  });
-
-  return createdResponse(res, createdProduct, SUCCESS_MESSAGES.PRODUCT_CREATED);
+    const createdProduct = await product.save();
+    res.status(201).json(createdProduct);
 });
 
 /**
@@ -148,41 +104,39 @@ export const createProduct = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const updateProduct = asyncHandler(async (req, res) => {
-  const sanitizedData = sanitizeInput(req.body);
-  const product = await Product.findById(req.params.id);
+    const {
+        name,
+        price,
+        description,
+        images,
+        countInStock,
+        category,
+        unit,
+        origin,
+        isOrganic,
+        discount
+    } = req.body;
 
-  if (!product) {
-    return notFoundResponse(res, ERROR_MESSAGES.PRODUCT_NOT_FOUND);
-  }
+    const product = await Product.findById(req.params.id);
 
-  // Validate input if provided
-  if (Object.keys(sanitizedData).length > 0) {
-    const validationErrors = validateProduct(sanitizedData);
-    if (validationErrors) {
-      return validationErrorResponse(res, validationErrors);
+    if (product) {
+        product.name = name;
+        product.price = price;
+        product.description = description;
+        product.images = images;
+        product.countInStock = countInStock;
+        product.category = category;
+        product.unit = unit;
+        product.origin = origin;
+        product.isOrganic = isOrganic;
+        product.discount = discount;
+
+        const updatedProduct = await product.save();
+        res.json(updatedProduct);
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
     }
-  }
-
-  // Update fields
-  if (sanitizedData.name) product.name = sanitizedData.name;
-  if (sanitizedData.images) product.images = sanitizedData.images;
-  if (sanitizedData.description) product.description = sanitizedData.description;
-  if (sanitizedData.price) product.price = parseFloat(sanitizedData.price);
-  if (sanitizedData.countInStock !== undefined) product.countInStock = parseInt(sanitizedData.countInStock);
-  if (sanitizedData.category) product.category = sanitizedData.category;
-  if (sanitizedData.unit) product.unit = sanitizedData.unit;
-  if (sanitizedData.origin) product.origin = sanitizedData.origin;
-  if (sanitizedData.discount !== undefined) product.discount = parseFloat(sanitizedData.discount);
-
-  const updatedProduct = await product.save();
-
-  logger.info('Product updated successfully', {
-    productId: product._id,
-    updatedBy: req.user._id,
-    updatedFields: Object.keys(sanitizedData),
-  });
-
-  return successResponse(res, updatedProduct, SUCCESS_MESSAGES.PRODUCT_UPDATED);
 });
 
 /**
@@ -191,21 +145,14 @@ export const updateProduct = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const deleteProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
-  
-  if (!product) {
-    return notFoundResponse(res, ERROR_MESSAGES.PRODUCT_NOT_FOUND);
-  }
-
-  await product.deleteOne();
-
-  logger.info('Product deleted successfully', {
-    productId: product._id,
-    deletedBy: req.user._id,
-    productName: product.name,
-  });
-
-  return successResponse(res, null, SUCCESS_MESSAGES.PRODUCT_DELETED);
+    const product = await Product.findById(req.params.id);
+    if (product) {
+        await product.deleteOne();
+        res.json({ message: 'Product removed' });
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
 });
 
 /**
@@ -214,47 +161,33 @@ export const deleteProduct = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment } = req.body;
-  const product = await Product.findById(req.params.id);
-  
-  if (!product) {
-    return notFoundResponse(res, ERROR_MESSAGES.PRODUCT_NOT_FOUND);
-  }
+    const { rating, comment } = req.body;
+    const product = await Product.findById(req.params.id);
 
-  // Check if user already reviewed
-  const alreadyReviewed = product.reviews.find(
-    (r) => r.user.toString() === req.user._id.toString()
-  );
-  
-  if (alreadyReviewed) {
-    return validationErrorResponse(res, { review: 'Product already reviewed' });
-  }
+    if (product) {
+        const alreadyReviewed = product.reviews.find(r => r.user.toString() === req.user._id.toString());
+        if (alreadyReviewed) {
+            res.status(400);
+            throw new Error('Product already reviewed');
+        }
 
-  // Validate rating
-  if (!rating || rating < 1 || rating > 5) {
-    return validationErrorResponse(res, { rating: 'Rating must be between 1 and 5' });
-  }
+        const review = {
+            name: req.user.name,
+            rating: Number(rating),
+            comment,
+            user: req.user._id
+        };
 
-  const review = {
-    user: req.user._id,
-    name: req.user.name,
-    rating: Number(rating),
-    comment: comment || '',
-  };
+        product.reviews.push(review);
+        product.numReviews = product.reviews.length;
+        product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
 
-  product.reviews.push(review);
-  product.numReviews = product.reviews.length;
-  product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
-  
-  await product.save();
-
-  logger.info('Product review created', {
-    productId: product._id,
-    reviewedBy: req.user._id,
-    rating: rating,
-  });
-
-  return createdResponse(res, { message: 'Review added successfully' });
+        await product.save();
+        res.status(201).json({ message: 'Review added' });
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
 });
 
 /**

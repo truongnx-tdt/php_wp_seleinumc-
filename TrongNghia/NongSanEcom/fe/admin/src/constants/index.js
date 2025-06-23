@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
+    PROFILE: '/api/auth/profile',
   },
   PRODUCTS: {
     LIST: '/api/products',
@@ -12,10 +13,10 @@ export const API_ENDPOINTS = {
     DETAIL: (id) => `/api/products/${id}`,
   },
   USERS: {
-    LIST: '/api/auth/get-users',
-    CREATE: '/api/auth/add-user',
-    UPDATE: (id) => `/api/auth/${id}`,
-    DELETE: (id) => `/api/auth/${id}`,
+    LIST: '/api/users',
+    CREATE: '/api/users',
+    UPDATE: (id) => `/api/users/${id}`,
+    DELETE: (id) => `/api/users/${id}`,
   },
   ORDERS: {
     LIST: '/api/orders',
@@ -33,11 +34,11 @@ export const USER_ROLES = {
 
 // Navigation Links
 export const NAV_LINKS = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', roles: [USER_ROLES.ADMIN] },
   { to: '/users', label: 'Quản trị người dùng', icon: 'users', roles: [USER_ROLES.ADMIN] },
-  { to: '/orders', label: 'Đơn hàng', icon: 'orders' },
-  { to: '/products', label: 'Sản phẩm', icon: 'products' },
-  { to: '/settings', label: 'Cài đặt', icon: 'settings' },
+  { to: '/orders', label: 'Đơn hàng', icon: 'orders', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
+  { to: '/products', label: 'Sản phẩm', icon: 'products', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
+  { to: '/settings', label: 'Cài đặt', icon: 'settings', roles: [USER_ROLES.ADMIN] },
 ];
 
 // Product Status

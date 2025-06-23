@@ -10,6 +10,9 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 
 // Import middleware
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -25,14 +28,13 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-  'http://localhost:3000', 
+  'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:5000',
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -54,7 +56,7 @@ app.use(morganConfig);
 app.use(requestLogger);
 
 // Rate limiting
-app.use(rateLimit(15 * 60 * 1000, 100)); // 100 requests per 15 minutes
+app.use(rateLimit);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
@@ -82,8 +84,11 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/cart', cartRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/payment', paymentRoutes);
 

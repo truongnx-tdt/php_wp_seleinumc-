@@ -25,56 +25,60 @@ const router = express.Router();
  * @swagger
  * /api/products:
  *   get:
- *     summary: Get all products
+ *     summary: Get all products with filtering and pagination
  *     tags: [Products]
  *     parameters:
  *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Number of items per page
- *       - in: query
- *         name: search
+ *         name: keyword
  *         schema:
  *           type: string
- *         description: Search by name or description
+ *         description: Search keyword for product name
  *       - in: query
  *         name: category
  *         schema:
  *           type: string
- *         description: Filter by category
+ *         description: Category ID to filter by
  *       - in: query
- *         name: minPrice
+ *         name: pageNumber
  *         schema:
- *           type: number
- *         description: Minimum price filter
- *       - in: query
- *         name: maxPrice
- *         schema:
- *           type: number
- *         description: Maximum price filter
- *       - in: query
- *         name: sort
- *         schema:
- *           type: string
- *           enum: [price_asc, price_desc, name_asc, name_desc, rating_desc]
- *         description: Sort order
+ *           type: integer
+ *         description: Page number
  *     responses:
  *       200:
- *         description: Products retrieved successfully
+ *         description: A list of products
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Success'
+ *               type: object
+ *               properties:
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 page:
+ *                   type: integer
+ *                 pages:
+ *                   type: integer
+ *   post:
+ *     summary: Create a new product (Admin only)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Product'
+ *     responses:
+ *       201:
+ *         description: Product created successfully
+ *       400:
+ *         description: Invalid data
  */
-router.route('/').get(getProducts);
+router.route('/')
+  .get(getProducts)
+  .post(protect, requireStaffOrAdmin, createProduct);
 
 /**
  * @swagger
@@ -129,7 +133,7 @@ router.route('/category/:category').get(getProductsByCategory);
  * @swagger
  * /api/products/{id}:
  *   get:
- *     summary: Get product by ID
+ *     summary: Get a single product by ID
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -140,25 +144,64 @@ router.route('/category/:category').get(getProductsByCategory);
  *         description: Product ID
  *     responses:
  *       200:
- *         description: Product retrieved successfully
+ *         description: Product data
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Success'
+ *               $ref: '#/components/schemas/Product'
  *       404:
  *         description: Product not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *   delete:
+ *     summary: Delete a product (Admin only)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product deleted
+ *       404:
+ *         description: Product not found
+ *   put:
+ *     summary: Update a product (Admin only)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Product'
+ *     responses:
+ *       200:
+ *         description: Product updated
+ *       404:
+ *         description: Product not found
  */
-router.route('/:id').get(getProductById);
+router.route('/:id')
+  .get(getProductById)
+  .delete(protect, requireStaffOrAdmin, deleteProduct)
+  .put(protect, requireStaffOrAdmin, updateProduct);
 
 /**
  * @swagger
  * /api/products/{id}/reviews:
  *   post:
- *     summary: Create product review
+ *     summary: Create a new review for a product
  *     tags: [Products]
  *     security:
  *       - bearerAuth: []
@@ -175,181 +218,20 @@ router.route('/:id').get(getProductById);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - rating
  *             properties:
  *               rating:
  *                 type: number
- *                 minimum: 1
- *                 maximum: 5
- *                 description: Rating (1-5)
+ *                 description: Rating from 1 to 5
  *               comment:
  *                 type: string
  *                 description: Review comment
  *     responses:
  *       201:
- *         description: Review created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
+ *         description: Review added successfully
  *       400:
- *         description: Validation error or already reviewed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: Product already reviewed or invalid data
  */
 router.route('/:id/reviews').post(protect, createProductReview);
-
-/**
- * @swagger
- * /api/products:
- *   post:
- *     summary: Create new product (Staff/Admin only)
- *     tags: [Products]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *               - price
- *               - description
- *             properties:
- *               name:
- *                 type: string
- *                 description: Product name
- *               description:
- *                 type: string
- *                 description: Product description
- *               price:
- *                 type: number
- *                 description: Product price
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Product images URLs
- *               countInStock:
- *                 type: number
- *                 description: Available stock
- *               category:
- *                 type: string
- *                 description: Product category
- *               unit:
- *                 type: string
- *                 description: Product unit (kg, piece, etc.)
- *               origin:
- *                 type: string
- *                 description: Product origin
- *               discount:
- *                 type: number
- *                 description: Discount percentage
- *     responses:
- *       201:
- *         description: Product created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.post('/', protect, requireStaffOrAdmin, createProduct);
-
-/**
- * @swagger
- * /api/products/{id}:
- *   put:
- *     summary: Update product (Staff/Admin only)
- *     tags: [Products]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Product ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *               price:
- *                 type: number
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *               countInStock:
- *                 type: number
- *               category:
- *                 type: string
- *               unit:
- *                 type: string
- *               origin:
- *                 type: string
- *               discount:
- *                 type: number
- *     responses:
- *       200:
- *         description: Product updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       404:
- *         description: Product not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *   delete:
- *     summary: Delete product (Staff/Admin only)
- *     tags: [Products]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Product ID
- *     responses:
- *       200:
- *         description: Product deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       404:
- *         description: Product not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.route('/:id')
-  .put(protect, requireStaffOrAdmin, updateProduct)
-  .delete(protect, requireStaffOrAdmin, deleteProduct);
 
 /**
  * @swagger
