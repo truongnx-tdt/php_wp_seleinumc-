@@ -46,7 +46,7 @@ const Modal = ({
         >
 
           {/* Modal panel */}
-          <div className={`inline-block w-full ${sizeClasses[size]} p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg`}>
+          <div className={`inline-block w-full ${sizeClasses[size]}  max-h-[120vh] p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">
@@ -65,7 +65,7 @@ const Modal = ({
             </div>
 
             {/* Content */}
-            <div className="mt-2">
+            <div className="mt-2 space-y-4 overflow-y-auto max-h-[80vh] scrollbar-hide scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {children}
             </div>
           </div>

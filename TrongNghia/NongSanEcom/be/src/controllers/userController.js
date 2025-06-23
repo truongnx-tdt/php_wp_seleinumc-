@@ -5,8 +5,56 @@ import User from '../models/User.js';
 // @route   GET /api/users
 // @access  Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({}).select('-password');
-    res.json(users);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+    const skip = (page - 1) * limit;
+    const role = req.query.role || '';
+    const status = req.query.status || '';
+    const sort = req.query.sort || 'createdAt';
+    const order = req.query.order || 'desc';
+    // lọc theo khoảng ngày tạo, từ ngày đến ngày
+    const createdAtFrom = req.query.createdAtFrom || '';
+    const createdAtTo = req.query.createdAtTo || '';
+
+    const query = {
+        $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+        ]
+    };
+
+    if (role) {
+        query.role = role;
+    }
+
+    if (status) {
+        query.status = status;
+    }
+
+    if (createdAtFrom || createdAtTo) {
+        query.createdAt = {};
+        if (createdAtFrom) {
+            query.createdAt.$gte = new Date(createdAtFrom);
+        }
+        if (createdAtTo) {
+            query.createdAt.$lte = new Date(createdAtTo);
+        }
+    }
+
+    const users = await User.find(query).select('-password').skip(skip).limit(limit).sort({ [sort]: order });
+
+    const total = await User.countDocuments(query);
+
+    res.json({
+        users,
+        total,
+        page,
+        limit,
+        sort,
+        order,
+        totalPages: Math.ceil(total / limit)
+    });
 });
 
 // @desc    Get user by ID
@@ -17,9 +65,33 @@ const getUserById = asyncHandler(async (req, res) => {
     if (user) {
         res.json(user);
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
+});
+
+// @desc    Create user
+// @route   POST /api/users
+// @access  Private/Admin
+const createUser = asyncHandler(async (req, res) => {
+    // check if user already exists
+    const user = await User.findOne({ email: req.body.email });
+    if (user) {
+        res.status(400).json({ message: 'User already exists' });
+        return;
+    }
+
+    // check if password min length 8, have at least 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(req.body.password)) {
+        res.status(400).json({ message: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 số và 1 ký tự đặc biệt' });
+        return;
+    }
+
+    const newUser = await User.create(req.body);
+
+    res.status(201).json(newUser);
+
 });
 
 // @desc    Update user
@@ -33,6 +105,7 @@ const updateUser = asyncHandler(async (req, res) => {
         user.email = req.body.email || user.email;
         user.role = req.body.role || user.role;
         user.status = req.body.status || user.status;
+        user.addresses = req.body.addresses || user.addresses;
 
         const updatedUser = await user.save();
 
@@ -42,10 +115,11 @@ const updateUser = asyncHandler(async (req, res) => {
             email: updatedUser.email,
             role: updatedUser.role,
             status: updatedUser.status,
+            addresses: updatedUser.addresses,
         });
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
 });
 
@@ -56,15 +130,15 @@ const deleteUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (user) {
-        if(user.role === 'admin') {
-            res.status(400);
-            throw new Error('Cannot delete admin user');
+        if (user.role === 'admin') {
+            res.status(400).json({ message: 'Cannot delete admin user' });
+            return;
         }
         await user.deleteOne();
         res.json({ message: 'User removed' });
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
 });
 
@@ -88,8 +162,8 @@ const addUserAddress = asyncHandler(async (req, res) => {
         await user.save();
         res.status(201).json(user.addresses);
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
 });
 
@@ -101,8 +175,8 @@ const getUserAddresses = asyncHandler(async (req, res) => {
     if (user) {
         res.json(user.addresses);
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
 });
 
@@ -124,12 +198,12 @@ const updateUserAddress = asyncHandler(async (req, res) => {
             await user.save();
             res.json(user.addresses);
         } else {
-            res.status(404);
-            throw new Error('Address not found');
+            res.status(404).json({ message: 'Address not found' });
+            return;
         }
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
 });
 
@@ -142,19 +216,19 @@ const deleteUserAddress = asyncHandler(async (req, res) => {
         const address = user.addresses.id(req.params.addressId);
         if (address) {
             if (address.isDefault && user.addresses.length > 1) {
-                res.status(400);
-                throw new Error('Cannot delete default address. Set another address as default first.');
+                res.status(400).json({ message: 'Cannot delete default address. Set another address as default first.' });
+                return;
             }
             address.remove();
             await user.save();
             res.json({ message: 'Address removed' });
         } else {
-            res.status(404);
-            throw new Error('Address not found');
+            res.status(404).json({ message: 'Address not found' });
+            return;
         }
     } else {
-        res.status(404);
-        throw new Error('User not found');
+        res.status(404).json({ message: 'User not found' });
+        return;
     }
 });
 
@@ -174,7 +248,7 @@ const setDefaultAddress = asyncHandler(async (req, res) => {
         user.addresses.forEach(addr => {
             addr.isDefault = addr._id.equals(newDefaultAddress._id);
         });
-        
+
         await user.save();
         res.json(user.addresses);
     } else {
@@ -186,6 +260,7 @@ const setDefaultAddress = asyncHandler(async (req, res) => {
 export {
     getUsers,
     getUserById,
+    createUser,
     updateUser,
     deleteUser,
     addUserAddress,

@@ -7,9 +7,15 @@ import generateToken from '../utils/generateToken.js';
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    // find and check user is active
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+        if (user.status === 'banned') {
+            res.status(401).json({ message: 'Tài khoản đã bị khóa vui lòng liên hệ quản trị viên để được hỗ trợ' });
+            return;
+        }
+
         generateToken(res, user._id);
         res.json({
             _id: user._id,
@@ -18,8 +24,8 @@ const loginUser = asyncHandler(async (req, res) => {
             role: user.role,
         });
     } else {
-        res.status(401);
-        throw new Error('Invalid email or password');
+        res.status(401).json({ message: 'Email hoặc mật khẩu không chính xác' });
+        return;
     }
 });
 
@@ -31,8 +37,8 @@ const registerUser = asyncHandler(async (req, res) => {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-        res.status(400);
-        throw new Error('User already exists');
+        res.status(400).json({ message: 'User already exists' });
+        return;
     }
 
     const user = await User.create({
@@ -50,8 +56,8 @@ const registerUser = asyncHandler(async (req, res) => {
             role: user.role,
         });
     } else {
-        res.status(400);
-        throw new Error('Invalid user data');
+        res.status(400).json({ message: 'Invalid user data' });
+        return;
     }
 });
 

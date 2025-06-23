@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 .bg-opacity-20 {
-  background-color: rgba(0, 0, 0, 0.2)!important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
 .z-0 {
@@ -17,6 +17,21 @@
 }
 
 
-.bg-opacity-30{
+.bg-opacity-30 {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+.bg-opacity-50 {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+

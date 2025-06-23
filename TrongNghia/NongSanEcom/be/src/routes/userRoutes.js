@@ -11,6 +11,7 @@ import {
     updateUserAddress,
     deleteUserAddress,
     setDefaultAddress,
+    createUser,
 } from '../controllers/userController.js';
 
 /**
@@ -117,20 +118,9 @@ router.put('/profile/addresses/:addressId/default', protect, setDefaultAddress);
 
 // === ADMIN ROUTES ===
 
-/**
- * @swagger
- * /api/users:
- *   get:
- *     summary: Get all users (Admin only)
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: A list of users
- */
 router.route('/')
-    .get(protect, requireAdmin, getUsers);
+    .get(protect, requireAdmin, getUsers)
+    .post(protect, requireAdmin, createUser);
 
 /**
  * @swagger
