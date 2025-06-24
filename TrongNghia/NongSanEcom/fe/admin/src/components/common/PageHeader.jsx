@@ -7,6 +7,7 @@ const PageHeader = ({
   action, 
   actionLabel, 
   onAction,
+  actionDisabled = false,
   children 
 }) => {
   return (
@@ -22,6 +23,7 @@ const PageHeader = ({
           <Button 
             variant="primary" 
             onClick={onAction}
+            disabled={actionDisabled}
             className="w-full sm:w-auto"
           >
             {actionLabel}

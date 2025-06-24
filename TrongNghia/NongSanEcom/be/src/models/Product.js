@@ -21,7 +21,9 @@ const productSchema = new mongoose.Schema({
   reviews: [reviewSchema],
   origin: { type: String, required: true },
   isOrganic: { type: Boolean, default: false },
-  discount: { type: Number, default: 0, min: 0, max: 100 }
+  discount: { type: Number, default: 0, min: 0, max: 100 },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

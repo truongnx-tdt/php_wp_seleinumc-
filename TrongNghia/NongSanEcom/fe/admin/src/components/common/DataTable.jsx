@@ -9,6 +9,8 @@ const DataTable = ({
   emptyMessage = 'Không có dữ liệu',
   className = '',
   onRowClick = null,
+  onRowDoubleClick = null,
+  onPageChange = null,
   showIndex = true,
 }) => {
   if (loading) {
@@ -53,8 +55,9 @@ const DataTable = ({
           {data.map((row, rowIndex) => (
             <tr 
               key={row._id || rowIndex} 
-              className={`hover:bg-green-50 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+              className={`hover:bg-green-50 transition-colors ${(onRowClick || onRowDoubleClick) ? 'cursor-pointer' : ''}`}
               onClick={() => onRowClick && onRowClick(row)}
+              onDoubleClick={() => onRowDoubleClick && onRowDoubleClick(row)}
             >
               {showIndex && (
                 <td className="py-3 px-4 text-gray-500">

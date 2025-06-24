@@ -9,6 +9,7 @@ import {
   getDashboardStats,
   getProductCategories,
   getProductsByCategory,
+  getProductsForAdmin,
 } from '../controllers/productController.js';
 import { protect, requireAdmin, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
@@ -20,6 +21,92 @@ const router = express.Router();
  *   name: Products
  *   description: Product management
  */
+
+/**
+ * @swagger
+ * /api/products/admin:
+ *   get:
+ *     summary: Get all products for admin with full details
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search keyword for product name
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Category ID to filter by
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *         description: Product status filter
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Items per page
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *         description: Sort field
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Sort order
+ *       - in: query
+ *         name: createdAtFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by creation date from
+ *       - in: query
+ *         name: createdAtTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by creation date to
+ *     responses:
+ *       200:
+ *         description: A list of products with full details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ */
+router.route('/admin').get(protect, requireAdmin, getProductsForAdmin);
 
 /**
  * @swagger

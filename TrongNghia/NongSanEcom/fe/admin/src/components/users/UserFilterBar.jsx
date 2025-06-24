@@ -124,7 +124,6 @@ const UserFilterBar = ({ filter, setFilter }) => {
         </select>
       </div>
       <div className="flex gap-2 mt-2 md:mt-0">
-        <Button type="button" variant="primary" size="sm" onClick={() => setFilter({ ...filter })}>Lọc</Button>
         <Button type="button" variant="outline" size="sm" onClick={handleReset}>Reset</Button>
       </div>
     </form>

@@ -59,8 +59,8 @@ const Pagination = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => onPageChange && onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || !onPageChange}
         >
           Trước
         </Button>
@@ -73,7 +73,8 @@ const Pagination = ({
               <Button
                 variant={currentPage === page ? 'primary' : 'outline'}
                 size="sm"
-                onClick={() => onPageChange(page)}
+                onClick={() => onPageChange && onPageChange(page)}
+                disabled={!onPageChange}
                 className="min-w-[40px]"
               >
                 {page}
@@ -85,8 +86,8 @@ const Pagination = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => onPageChange && onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || !onPageChange}
         >
           Sau
         </Button>

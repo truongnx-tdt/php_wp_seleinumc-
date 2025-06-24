@@ -41,6 +41,8 @@ export const getProducts = asyncHandler(async (req, res) => {
     const products = await Product.find({ ...keyword, ...category })
         .populate('category', 'name')
         .populate('unit', 'name symbol')
+        .populate('createdBy', 'name')
+        .populate('updatedBy', 'name')
         .limit(pageSize)
         .skip(pageSize * (page - 1));
 
@@ -56,7 +58,9 @@ export const getProductById = asyncHandler(async (req, res) => {
     const product = await Product.findById(req.params.id)
         .populate('reviews.user', 'name')
         .populate('category', 'name')
-        .populate('unit', 'name symbol');
+        .populate('unit', 'name symbol')
+        .populate('createdBy', 'name')
+        .populate('updatedBy', 'name');
     if (product) {
         res.json(product);
     } else {
@@ -95,7 +99,8 @@ export const createProduct = asyncHandler(async (req, res) => {
         unit,
         origin,
         isOrganic,
-        discount
+        discount,
+        createdBy: req.user._id
     });
 
     const createdProduct = await product.save();
@@ -134,6 +139,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product.origin = origin;
         product.isOrganic = isOrganic;
         product.discount = discount;
+        product.updatedBy = req.user._id;
 
         const updatedProduct = await product.save();
         res.json(updatedProduct);
@@ -249,5 +255,77 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
     products: result.data,
     pagination: result.pagination,
     category,
+  });
+});
+
+/**
+ * @desc    Get products for admin with full details
+ * @route   GET /api/products/admin
+ * @access  Private/Admin
+ */
+export const getProductsForAdmin = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  // Build filter
+  const filter = {};
+  
+  if (req.query.search) {
+    filter.name = { $regex: req.query.search, $options: 'i' };
+  }
+  
+  if (req.query.category) {
+    filter.category = req.query.category;
+  }
+  
+  if (req.query.status) {
+    if (req.query.status === 'active') {
+      filter.countInStock = { $gt: 0 };
+    } else if (req.query.status === 'inactive') {
+      filter.countInStock = { $lte: 0 };
+    }
+  }
+
+  // Build sort
+  let sort = { createdAt: -1 };
+  if (req.query.sort) {
+    const order = req.query.order === 'asc' ? 1 : -1;
+    sort = { [req.query.sort]: order };
+  }
+
+  // Date range filter
+  if (req.query.createdAtFrom || req.query.createdAtTo) {
+    filter.createdAt = {};
+    if (req.query.createdAtFrom) {
+      filter.createdAt.$gte = new Date(req.query.createdAtFrom);
+    }
+    if (req.query.createdAtTo) {
+      filter.createdAt.$lte = new Date(req.query.createdAtTo);
+    }
+  }
+
+  const [products, total] = await Promise.all([
+    Product.find(filter)
+      .populate('category', 'name')
+      .populate('unit', 'name symbol')
+      .populate('createdBy', 'name')
+      .populate('updatedBy', 'name')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit),
+    Product.countDocuments(filter)
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  res.json({
+    products,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages
+    }
   });
 }); 

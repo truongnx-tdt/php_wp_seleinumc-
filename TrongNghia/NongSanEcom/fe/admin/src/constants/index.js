@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
   },
   PRODUCTS: {
     LIST: '/api/products',
+    ADMIN_LIST: '/api/products/admin',
     CREATE: '/api/products',
     UPDATE: (id) => `/api/products/${id}`,
     DELETE: (id) => `/api/products/${id}/delete`,

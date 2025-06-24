@@ -43,6 +43,10 @@ const useProductFilters = () => {
   const [debouncedSearch, setDebouncedSearch] = useState(filter.search);
   const [CATEGORY_OPTIONS, setCategoryOptions] = useState([]);
   const [UNIT_OPTIONS, setUnitOptions] = useState([]);
+  
+  // Loading states cho các thao tác
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState({});
 
   // Debounce search
   useEffect(() => {
@@ -62,7 +66,7 @@ const useProductFilters = () => {
           (categories || []).map(cat => ({ value: cat._id, label: cat.name }))
         );
       } catch (err) {
-        // toast.error('Không thể tải danh mục!');
+        toast.error('Không thể tải danh mục!');
       }
     };
     fetchCategories();
@@ -79,7 +83,7 @@ const useProductFilters = () => {
           (units || []).map(unit => ({ value: unit._id, label: `${unit.name} (${unit.symbol})` }))
         );
       } catch (err) {
-        // toast.error('Không thể tải đơn vị!');
+        toast.error('Không thể tải đơn vị!');
       }
     };
     fetchUnits();
@@ -105,15 +109,15 @@ const useProductFilters = () => {
         createdAtFrom: filter.createdAtFrom,
         createdAtTo: filter.createdAtTo,
       });
-      const response = await get(`${API_ENDPOINTS.PRODUCTS.LIST}?${params.toString()}`);
-      const { products, total, totalPages } = response;
+      const response = await get(`${API_ENDPOINTS.PRODUCTS.ADMIN_LIST}?${params.toString()}`);
+      const { products, pagination: paginationData } = response;
       setProducts(products || []);
       updatePagination({
-        total: total,
-        totalPages: totalPages,
+        total: paginationData.total,
+        totalPages: paginationData.totalPages,
       });
     } catch (err) {
-      // toast.error('Không thể tải sản phẩm!');
+      toast.error('Không thể tải sản phẩm!');
     }
   }, [get, pagination.page, pagination.limit, debouncedSearch, filter.category, filter.status, filter.sort, filter.order, filter.createdAtFrom, filter.createdAtTo, updatePagination]);
 
@@ -149,20 +153,34 @@ const useProductFilters = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Ngăn spam submit
+    if (submitLoading) return;
+    
+    setSubmitLoading(true);
     try {
       let images = formData.images;
-      if (images && images.length > 0 && images[0] instanceof File) {
+      
+      // Xử lý hình ảnh mới được thêm
+      if (images && images.length > 0) {
         const uploadedUrls = [];
-        for (const file of images) {
-          const formDataImg = new FormData();
-          formDataImg.append('image', file);
-          const res = await post('/api/upload', formDataImg, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
-          uploadedUrls.push(res.data.url);
+        for (const image of images) {
+          if (image instanceof File) {
+            // Upload hình ảnh mới
+            const formDataImg = new FormData();
+            formDataImg.append('image', image);
+            const res = await post('/api/upload', formDataImg, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            uploadedUrls.push(res.data.url);
+          } else if (typeof image === 'string') {
+            // Giữ lại URL hình ảnh cũ
+            uploadedUrls.push(image);
+          }
         }
         images = uploadedUrls;
       }
+      
       const productData = {
         ...formData,
         price: Number(formData.price),
@@ -170,6 +188,7 @@ const useProductFilters = () => {
         discount: Number(formData.discount) || 0,
         images,
       };
+      
       if (editingProduct) {
         await put(API_ENDPOINTS.PRODUCTS.UPDATE(editingProduct._id), productData);
         toast.success('Cập nhật sản phẩm thành công!');
@@ -182,17 +201,25 @@ const useProductFilters = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra!';
       toast.error(errorMessage);
-      fetchProducts();
+    } finally {
+      setSubmitLoading(false);
     }
   };
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+      // Ngăn spam delete
+      if (deleteLoading[id]) return;
+      
+      setDeleteLoading(prev => ({ ...prev, [id]: true }));
       try {
         await deleteApi(API_ENDPOINTS.PRODUCTS.DELETE(id));
         toast.success('Xóa sản phẩm thành công');
         fetchProducts();
       } catch (err) {
-        // toast.error('Không thể xóa sản phẩm!');
+        const errorMessage = err.response?.data?.message || 'Không thể xóa sản phẩm!';
+        toast.error(errorMessage);
+      } finally {
+        setDeleteLoading(prev => ({ ...prev, [id]: false }));
       }
     }
   };
@@ -217,7 +244,9 @@ const useProductFilters = () => {
     handleFormChange,
     CATEGORY_OPTIONS,
     UNIT_OPTIONS,
-    STATUS_FORM_OPTIONS
+    STATUS_FORM_OPTIONS,
+    submitLoading,
+    deleteLoading
   };
 };
 

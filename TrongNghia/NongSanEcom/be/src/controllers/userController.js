@@ -105,6 +105,7 @@ const updateUser = asyncHandler(async (req, res) => {
         user.email = req.body.email || user.email;
         user.role = req.body.role || user.role;
         user.status = req.body.status || user.status;
+        user.phone = req.body.phone || user.phone;
         user.addresses = req.body.addresses || user.addresses;
 
         const updatedUser = await user.save();

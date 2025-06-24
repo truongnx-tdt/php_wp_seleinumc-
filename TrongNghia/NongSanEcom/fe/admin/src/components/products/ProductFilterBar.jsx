@@ -16,11 +16,13 @@ const ORDER_OPTIONS = [
   { value: 'asc', label: 'Tăng dần' },
 ];
 
-const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
+const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS, disabled = false }) => {
   const handleChange = (e) => {
+    if (disabled) return;
     setFilter({ ...filter, [e.target.name]: e.target.value });
   };
   const handleReset = () => {
+    if (disabled) return;
     setFilter({
       search: '',
       category: '',
@@ -42,6 +44,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           placeholder="Tên sản phẩm..."
           value={filter.search}
           onChange={handleChange}
+          disabled={disabled}
         />
       </div>
       <div>
@@ -51,6 +54,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           value={filter.category}
           onChange={handleChange}
+          disabled={disabled}
         >
           <option value="">Tất cả</option>
           {CATEGORY_OPTIONS?.map(opt => (
@@ -65,6 +69,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           value={filter.status}
           onChange={handleChange}
+          disabled={disabled}
         >
           {STATUS_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -79,6 +84,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           value={filter.createdAtFrom || ''}
           onChange={handleChange}
+          disabled={disabled}
         />
       </div>
       <div>
@@ -89,6 +95,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           value={filter.createdAtTo || ''}
           onChange={handleChange}
+          disabled={disabled}
         />
       </div>
       <div>
@@ -98,6 +105,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           value={filter.sort}
           onChange={handleChange}
+          disabled={disabled}
         >
           {SORT_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -111,6 +119,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           value={filter.order}
           onChange={handleChange}
+          disabled={disabled}
         >
           {ORDER_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -118,8 +127,7 @@ const ProductFilterBar = ({ filter, setFilter, CATEGORY_OPTIONS }) => {
         </select>
       </div>
       <div className="flex gap-2 mt-2 md:mt-0">
-        <Button type="button" variant="primary" size="sm" onClick={() => setFilter({ ...filter })}>Lọc</Button>
-        <Button type="button" variant="outline" size="sm" onClick={handleReset}>Reset</Button>
+        <Button type="button" variant="outline" size="sm" onClick={handleReset} disabled={disabled}>Reset</Button>
       </div>
     </form>
   );
