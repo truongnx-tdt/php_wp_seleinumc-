@@ -58,6 +58,7 @@ export const NAV_LINKS = [
   { to: '/products', label: 'Sản phẩm', icon: 'products', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
   { to: '/categories', label: 'Danh mục', icon: 'categories', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
   { to: '/units', label: 'Đơn vị', icon: 'units', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
+  { to: '/banners', label: 'Banner', icon: 'banners', roles: [USER_ROLES.ADMIN] },
   { to: '/settings', label: 'Cài đặt', icon: 'settings', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
 ];
 
@@ -87,4 +88,29 @@ export const STORAGE_KEYS = {
 export const PAGINATION_DEFAULTS = {
   PAGE: 1,
   LIMIT: 10,
-}; 
+};
+
+// Banner API endpoints
+export const BANNER_ENDPOINTS = {
+  LIST: '/api/banners',
+  CREATE: '/api/banners',
+  UPDATE: (id) => `/api/banners/${id}`,
+  DELETE: (id) => `/api/banners/${id}`,
+  TOGGLE: (id) => `/api/banners/${id}/toggle`,
+  PRIORITY: (id) => `/api/banners/${id}/priority`,
+  PUBLIC: '/api/banners/public',
+};
+
+// Banner position options
+export const BANNER_POSITIONS = [
+  { value: 'home', label: 'Trang chủ' },
+  { value: 'category', label: 'Trang danh mục' },
+  { value: 'product', label: 'Trang sản phẩm' },
+  { value: 'custom', label: 'Tùy chỉnh' },
+];
+
+// Banner status options
+export const BANNER_STATUS_OPTIONS = [
+  { value: true, label: 'Hiển thị' },
+  { value: false, label: 'Ẩn' },
+]; 

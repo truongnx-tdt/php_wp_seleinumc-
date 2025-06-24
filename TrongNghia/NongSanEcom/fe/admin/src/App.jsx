@@ -10,6 +10,7 @@ import Orders from './pages/Orders.jsx';
 import Products from './pages/Products.jsx';
 import Categories from './pages/Categories.jsx';
 import Units from './pages/Units.jsx';
+import Banners from './pages/Banners.jsx';
 import Settings from './pages/Settings.jsx';
 
 // Layouts
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/products" element={<Products />} />
                 <Route path="/categories" element={<Categories />} />
                 <Route path="/units" element={<Units />} />
+                <Route path="/banners" element={<Banners />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>
 

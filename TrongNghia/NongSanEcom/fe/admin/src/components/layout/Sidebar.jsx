@@ -11,7 +11,8 @@ import {
   FaTags, 
   FaClipboardList, 
   FaCog,
-  FaRuler
+  FaRuler,
+  FaImage
 } from 'react-icons/fa';
 
 const Sidebar = ({ onLinkClick }) => {
@@ -35,6 +36,8 @@ const Sidebar = ({ onLinkClick }) => {
         return <FaTags size={18} />;
       case 'units':
         return <FaRuler size={18} />;
+      case 'banners':
+        return <FaImage size={18} />;
       case 'orders':
         return <FaClipboardList size={18} />;
       case 'settings':

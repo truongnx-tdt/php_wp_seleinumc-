@@ -14,6 +14,7 @@ import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import unitRoutes from './routes/unitRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
+import bannerRoutes from './routes/bannerRoutes.js';
 
 // Import middleware
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -91,6 +92,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/units', unitRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/banners', bannerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/payment', paymentRoutes);
 
