@@ -40,6 +40,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     const count = await Product.countDocuments({ ...keyword, ...category });
     const products = await Product.find({ ...keyword, ...category })
         .populate('category', 'name')
+        .populate('unit', 'name symbol')
         .limit(pageSize)
         .skip(pageSize * (page - 1));
 
@@ -52,7 +53,10 @@ export const getProducts = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getProductById = asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id).populate('reviews.user', 'name').populate('category', 'name');
+    const product = await Product.findById(req.params.id)
+        .populate('reviews.user', 'name')
+        .populate('category', 'name')
+        .populate('unit', 'name symbol');
     if (product) {
         res.json(product);
     } else {

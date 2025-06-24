@@ -9,6 +9,7 @@ import Users from './pages/Users.jsx';
 import Orders from './pages/Orders.jsx';
 import Products from './pages/Products.jsx';
 import Categories from './pages/Categories.jsx';
+import Units from './pages/Units.jsx';
 import Settings from './pages/Settings.jsx';
 
 // Layouts
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/categories" element={<Categories />} />
+                <Route path="/units" element={<Units />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>

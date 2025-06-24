@@ -42,6 +42,7 @@ const useProductFilters = () => {
   const { pagination, setPage, updatePagination } = usePagination();
   const [debouncedSearch, setDebouncedSearch] = useState(filter.search);
   const [CATEGORY_OPTIONS, setCategoryOptions] = useState([]);
+  const [UNIT_OPTIONS, setUnitOptions] = useState([]);
 
   // Debounce search
   useEffect(() => {
@@ -65,6 +66,23 @@ const useProductFilters = () => {
       }
     };
     fetchCategories();
+    // eslint-disable-next-line
+  }, []);
+
+  // Fetch units for filter
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const data = await get(API_ENDPOINTS.UNITS.LIST);
+        const units = Array.isArray(data) ? data : data.units;
+        setUnitOptions(
+          (units || []).map(unit => ({ value: unit._id, label: `${unit.name} (${unit.symbol})` }))
+        );
+      } catch (err) {
+        // toast.error('Không thể tải đơn vị!');
+      }
+    };
+    fetchUnits();
     // eslint-disable-next-line
   }, []);
 
@@ -112,7 +130,7 @@ const useProductFilters = () => {
       price: product.price || '',
       countInStock: product.countInStock || '',
       category: product.category?._id || product.category || '',
-      unit: product.unit || '',
+      unit: product.unit?._id || product.unit || '',
       description: product.description || '',
       origin: product.origin || '',
       discount: product.discount || '',
@@ -198,6 +216,7 @@ const useProductFilters = () => {
     setFormData,
     handleFormChange,
     CATEGORY_OPTIONS,
+    UNIT_OPTIONS,
     STATUS_FORM_OPTIONS
   };
 };

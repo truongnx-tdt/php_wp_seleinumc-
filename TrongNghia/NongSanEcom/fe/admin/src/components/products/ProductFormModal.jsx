@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Modal } from '../common';
 
-const ProductFormModal = ({ isOpen, onClose, editingProduct, formData, setFormData, handleFormChange, handleSubmit, CATEGORY_OPTIONS, STATUS_FORM_OPTIONS }) => {
+const ProductFormModal = ({ isOpen, onClose, editingProduct, formData, setFormData, handleFormChange, handleSubmit, CATEGORY_OPTIONS, UNIT_OPTIONS, STATUS_FORM_OPTIONS }) => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setFormData({ ...formData, images: files });
@@ -28,12 +28,17 @@ const ProductFormModal = ({ isOpen, onClose, editingProduct, formData, setFormDa
             <input type="number" name="countInStock" min="0" value={formData.countInStock} onChange={handleFormChange} className="w-full px-3 py-2 border rounded-md focus:ring-green-500" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Đơn vị</label>
-            <input type="text" name="unit" value={formData.unit} onChange={handleFormChange} className="w-full px-3 py-2 border rounded-md focus:ring-green-500" placeholder="kg, chai, lon..." />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Đơn vị *</label>
+            <select name="unit" value={formData.unit} onChange={handleFormChange} className="w-full px-3 py-2 border rounded-md focus:ring-green-500" required>
+              <option value="">Chọn đơn vị</option>
+              {UNIT_OPTIONS?.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-            <select name="category" value={formData.category} onChange={handleFormChange} className="w-full px-3 py-2 border rounded-md focus:ring-green-500">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục *</label>
+            <select name="category" value={formData.category} onChange={handleFormChange} className="w-full px-3 py-2 border rounded-md focus:ring-green-500" required>
               <option value="">Chọn danh mục</option>
               {CATEGORY_OPTIONS?.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>

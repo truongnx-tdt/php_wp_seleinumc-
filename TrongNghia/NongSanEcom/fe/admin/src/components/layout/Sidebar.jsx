@@ -10,7 +10,8 @@ import {
   FaBoxes, 
   FaTags, 
   FaClipboardList, 
-  FaCog 
+  FaCog,
+  FaRuler
 } from 'react-icons/fa';
 
 const Sidebar = ({ onLinkClick }) => {
@@ -32,6 +33,8 @@ const Sidebar = ({ onLinkClick }) => {
         return <FaBoxes size={18} />;
       case 'categories':
         return <FaTags size={18} />;
+      case 'units':
+        return <FaRuler size={18} />;
       case 'orders':
         return <FaClipboardList size={18} />;
       case 'settings':

@@ -55,14 +55,14 @@ const Dashboard = () => {
 
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center">
-            <div className="p-2 rounded-full bg-yellow-100">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            <div className="p-2 rounded-full bg-orange-100">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Người dùng</p>
-              <p className="text-2xl font-semibold text-gray-900">890</p>
+              <p className="text-sm font-medium text-gray-600">Đơn vị</p>
+              <p className="text-2xl font-semibold text-gray-900">12</p>
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@ const Dashboard = () => {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Danh mục sản phẩm</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Đơn vị sản phẩm</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -103,7 +103,7 @@ const Dashboard = () => {
                   <span className="text-green-600 font-semibold">1</span>
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">Rau xanh</p>
+                  <p className="font-medium">Kilogram (kg)</p>
                   <p className="text-sm text-gray-600">45 sản phẩm</p>
                 </div>
               </div>
@@ -115,7 +115,7 @@ const Dashboard = () => {
                   <span className="text-blue-600 font-semibold">2</span>
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">Trái cây</p>
+                  <p className="font-medium">Gram (g)</p>
                   <p className="text-sm text-gray-600">32 sản phẩm</p>
                 </div>
               </div>
@@ -127,7 +127,7 @@ const Dashboard = () => {
                   <span className="text-yellow-600 font-semibold">3</span>
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">Củ quả</p>
+                  <p className="font-medium">Cái (pcs)</p>
                   <p className="text-sm text-gray-600">28 sản phẩm</p>
                 </div>
               </div>
