@@ -25,7 +25,7 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Chi tiết sản phẩm" size="2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Chi tiết sản phẩm" size="xl">
       <div className="space-y-6">
         {/* Thông tin cơ bản */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -22,6 +22,11 @@ const loginUser = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            phone: user.phone,
+            addresses: user.addresses,
+            status: user.status,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
         });
     } else {
         res.status(401).json({ message: 'Email hoặc mật khẩu không chính xác' });
