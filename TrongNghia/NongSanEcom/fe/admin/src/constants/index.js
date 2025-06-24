@@ -12,6 +12,13 @@ export const API_ENDPOINTS = {
     DELETE: (id) => `/api/products/${id}/delete`,
     DETAIL: (id) => `/api/products/${id}`,
   },
+  CATEGORIES: {
+    LIST: '/api/categories',
+    CREATE: '/api/categories',
+    UPDATE: (id) => `/api/categories/${id}`,
+    DELETE: (id) => `/api/categories/${id}`,
+    DETAIL: (id) => `/api/categories/${id}`,
+  },
   USERS: {
     LIST: '/api/users',
     CREATE: '/api/users',
@@ -38,6 +45,7 @@ export const NAV_LINKS = [
   { to: '/users', label: 'Quản trị người dùng', icon: 'users', roles: [USER_ROLES.ADMIN] },
   { to: '/orders', label: 'Đơn hàng', icon: 'orders', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
   { to: '/products', label: 'Sản phẩm', icon: 'products', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
+  { to: '/categories', label: 'Danh mục', icon: 'categories', roles: [USER_ROLES.ADMIN] },
   { to: '/settings', label: 'Cài đặt', icon: 'settings', roles: [USER_ROLES.ADMIN] },
 ];
 

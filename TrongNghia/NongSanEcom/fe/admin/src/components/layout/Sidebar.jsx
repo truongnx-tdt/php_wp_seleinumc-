@@ -4,6 +4,14 @@ import { NAV_LINKS } from '../../constants';
 import { hasRole } from '../../utils/auth';
 import { useAuth } from '../../context/AuthContext';
 import { FaSignOutAlt, FaUserCircle } from 'react-icons/fa';
+import { 
+  FaTachometerAlt, 
+  FaUsers, 
+  FaBoxes, 
+  FaTags, 
+  FaClipboardList, 
+  FaCog 
+} from 'react-icons/fa';
 
 const Sidebar = ({ onLinkClick }) => {
   const { user, logout } = useAuth();
@@ -13,6 +21,25 @@ const Sidebar = ({ onLinkClick }) => {
     if (!link.roles) return true;
     return hasRole(link.roles, user);
   });
+
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'dashboard':
+        return <FaTachometerAlt size={18} />;
+      case 'users':
+        return <FaUsers size={18} />;
+      case 'products':
+        return <FaBoxes size={18} />;
+      case 'categories':
+        return <FaTags size={18} />;
+      case 'orders':
+        return <FaClipboardList size={18} />;
+      case 'settings':
+        return <FaCog size={18} />;
+      default:
+        return null;
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -50,7 +77,7 @@ const Sidebar = ({ onLinkClick }) => {
               }`
             }
           >
-            {/* You can add icons here later if you want */}
+            {getIcon(link.icon)}
             <span>{link.label}</span>
           </NavLink>
         ))}

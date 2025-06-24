@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import Users from './pages/Users.jsx';
 import Orders from './pages/Orders.jsx';
 import Products from './pages/Products.jsx';
+import Categories from './pages/Categories.jsx';
 import Settings from './pages/Settings.jsx';
 
 // Layouts
@@ -43,6 +44,7 @@ function App() {
               <Route element={<AdminRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/users" element={<Users />} />
+                <Route path="/categories" element={<Categories />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
