@@ -10,7 +10,7 @@ export const API_ENDPOINTS = {
     ADMIN_LIST: '/api/products/admin',
     CREATE: '/api/products',
     UPDATE: (id) => `/api/products/${id}`,
-    DELETE: (id) => `/api/products/${id}/delete`,
+    DELETE: (id) => `/api/products/${id}`,
     DETAIL: (id) => `/api/products/${id}`,
   },
   CATEGORIES: {
@@ -32,6 +32,9 @@ export const API_ENDPOINTS = {
     CREATE: '/api/users',
     UPDATE: (id) => `/api/users/${id}`,
     DELETE: (id) => `/api/users/${id}`,
+    PROFILE: '/api/users/profile',
+    CHANGE_PASSWORD: '/api/users/change-password',
+    SETTINGS: '/api/users/settings',
   },
   ORDERS: {
     LIST: '/api/orders',
@@ -49,13 +52,13 @@ export const USER_ROLES = {
 
 // Navigation Links
 export const NAV_LINKS = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', roles: [USER_ROLES.ADMIN] },
+  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
   { to: '/users', label: 'Quản trị người dùng', icon: 'users', roles: [USER_ROLES.ADMIN] },
   { to: '/orders', label: 'Đơn hàng', icon: 'orders', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
   { to: '/products', label: 'Sản phẩm', icon: 'products', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
-  { to: '/categories', label: 'Danh mục', icon: 'categories', roles: [USER_ROLES.ADMIN] },
-  { to: '/units', label: 'Đơn vị', icon: 'units', roles: [USER_ROLES.ADMIN] },
-  { to: '/settings', label: 'Cài đặt', icon: 'settings', roles: [USER_ROLES.ADMIN] },
+  { to: '/categories', label: 'Danh mục', icon: 'categories', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
+  { to: '/units', label: 'Đơn vị', icon: 'units', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
+  { to: '/settings', label: 'Cài đặt', icon: 'settings', roles: [USER_ROLES.ADMIN, USER_ROLES.STAFF] },
 ];
 
 // Product Status

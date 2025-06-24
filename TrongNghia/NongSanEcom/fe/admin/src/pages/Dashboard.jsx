@@ -1,12 +1,97 @@
-import React from 'react';
-import { PageHeader } from '../components/common';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useApi } from '../hooks/useApi';
+import { PageHeader, LoadingSpinner } from '../components/common';
+import { API_ENDPOINTS } from '../constants';
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const { get } = useApi();
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCategories: 0,
+    totalUnits: 0,
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        // Load system settings for stats
+        const settingsData = await get(API_ENDPOINTS.USERS.SETTINGS);
+        if (settingsData.statistics) {
+          setStats({
+            totalOrders: settingsData.statistics.totalOrders || 0,
+            totalProducts: settingsData.statistics.totalProducts || 0,
+            totalCategories: settingsData.statistics.totalCategories || 0,
+            totalUnits: settingsData.statistics.totalUnits || 0,
+          });
+        }
+
+        // Load recent orders
+        const ordersData = await get(API_ENDPOINTS.ORDERS.LIST + '?limit=5');
+        if (ordersData.orders) {
+          setRecentOrders(ordersData.orders);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [get]);
+
+  if (loading) {
+    return <LoadingSpinner text="Đang tải dữ liệu dashboard..." />;
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'Chờ xác nhận';
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'shipping':
+        return 'Đang giao';
+      case 'delivered':
+        return 'Đã giao';
+      case 'cancelled':
+        return 'Đã hủy';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-800';
+      case 'shipping':
+        return 'bg-purple-100 text-purple-800';
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       <PageHeader
         title="Dashboard"
-        subtitle="Tổng quan hệ thống quản lý nông sản"
+        subtitle={`Chào mừng ${user?.name}! Tổng quan hệ thống quản lý nông sản`}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -20,7 +105,7 @@ const Dashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Tổng đơn hàng</p>
-              <p className="text-2xl font-semibold text-gray-900">1,234</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalOrders.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -34,7 +119,7 @@ const Dashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Sản phẩm</p>
-              <p className="text-2xl font-semibold text-gray-900">567</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalProducts.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -48,7 +133,7 @@ const Dashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Danh mục</p>
-              <p className="text-2xl font-semibold text-gray-900">45</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalCategories.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -62,7 +147,7 @@ const Dashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Đơn vị</p>
-              <p className="text-2xl font-semibold text-gray-900">12</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalUnits.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -73,65 +158,53 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Đơn hàng gần đây</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-              <div>
-                <p className="font-medium">Đơn hàng #1234</p>
-                <p className="text-sm text-gray-600">Nguyễn Văn A - 2 sản phẩm</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                Đã giao
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-              <div>
-                <p className="font-medium">Đơn hàng #1235</p>
-                <p className="text-sm text-gray-600">Trần Thị B - 1 sản phẩm</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                Đang xử lý
-              </span>
-            </div>
+            {recentOrders.length > 0 ? (
+              recentOrders.map((order) => (
+                <div key={order._id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium">Đơn hàng #{order.orderNumber}</p>
+                    <p className="text-sm text-gray-600">
+                      {order.user?.name || 'Khách hàng'} - {order.orderItems?.length || 0} sản phẩm
+                    </p>
+                    <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
+                    {getStatusLabel(order.status)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-4">Chưa có đơn hàng nào</p>
+            )}
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Đơn vị sản phẩm</h3>
-          <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin hệ thống</h3>
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-green-600 font-semibold">1</span>
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium">Kilogram (kg)</p>
-                  <p className="text-sm text-gray-600">45 sản phẩm</p>
-                </div>
-              </div>
-              <span className="text-green-600 font-semibold">Hoạt động</span>
+              <span className="text-sm text-gray-600">Vai trò hiện tại:</span>
+              <span className="font-medium">
+                {user?.role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold">2</span>
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium">Gram (g)</p>
-                  <p className="text-sm text-gray-600">32 sản phẩm</p>
-                </div>
-              </div>
-              <span className="text-green-600 font-semibold">Hoạt động</span>
+              <span className="text-sm text-gray-600">Email:</span>
+              <span className="font-medium">{user?.email}</span>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <span className="text-yellow-600 font-semibold">3</span>
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium">Cái (pcs)</p>
-                  <p className="text-sm text-gray-600">28 sản phẩm</p>
-                </div>
-              </div>
-              <span className="text-green-600 font-semibold">Hoạt động</span>
+              <span className="text-sm text-gray-600">Ngày tham gia:</span>
+              <span className="font-medium">
+                {user?.createdAt ? formatDate(user.createdAt) : '-'}
+              </span>
+            </div>
+            <div className="pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                {user?.role === 'admin' 
+                  ? 'Bạn có quyền truy cập tất cả chức năng của hệ thống.'
+                  : 'Bạn có quyền quản lý đơn hàng, sản phẩm, danh mục và đơn vị.'
+                }
+              </p>
             </div>
           </div>
         </div>

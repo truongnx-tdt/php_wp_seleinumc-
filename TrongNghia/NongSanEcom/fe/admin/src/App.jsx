@@ -37,17 +37,17 @@ function App() {
             <Route element={<AdminLayout />}>
               {/* Routes accessible to staff and admin */}
               <Route element={<StaffRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/products" element={<Products />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/units" element={<Units />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
 
               {/* Routes accessible only to admin users */}
               <Route element={<AdminRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/users" element={<Users />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/units" element={<Units />} />
-                <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
           </Route>
@@ -83,10 +83,8 @@ const RootRedirect = () => {
 
   // Nếu có user trong localStorage, redirect dựa trên role
   if (user) {
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'staff') {
       return <Navigate to="/dashboard" replace />;
-    } else if (user.role === 'staff') {
-      return <Navigate to="/orders" replace />;
     }
   }
 

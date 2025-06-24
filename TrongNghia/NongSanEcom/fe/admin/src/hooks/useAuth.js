@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCurrentUser, isAuthenticated } from '../utils/auth';
+import { getCurrentUser, setCurrentUser, isAuthenticated } from '../utils/auth';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -13,6 +13,7 @@ export const useAuth = () => {
 
   const updateUser = (newUser) => {
     setUser(newUser);
+    setCurrentUser(newUser);
   };
 
   return {

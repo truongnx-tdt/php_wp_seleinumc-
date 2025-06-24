@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { protect, requireAdmin } from '../middleware/authMiddleware.js';
+import { protect, requireAdmin, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 import {
     getUsers,
     getUserById,
@@ -12,6 +12,9 @@ import {
     deleteUserAddress,
     setDefaultAddress,
     createUser,
+    updateProfile,
+    changePassword,
+    getSystemSettings,
 } from '../controllers/userController.js';
 
 /**
@@ -20,6 +23,72 @@ import {
  *   - name: Users
  *     description: User management (Admin) and address management
  */
+
+// === PROFILE & SETTINGS ROUTES ===
+
+/**
+ * @swagger
+ * /api/users/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ */
+router.put('/profile', protect, updateProfile);
+
+/**
+ * @swagger
+ * /api/users/change-password:
+ *   put:
+ *     summary: Change user password
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ */
+router.put('/change-password', protect, changePassword);
+
+/**
+ * @swagger
+ * /api/users/settings:
+ *   get:
+ *     summary: Get system settings and statistics (Admin/Staff only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: System settings and statistics
+ */
+router.get('/settings', protect, requireStaffOrAdmin, getSystemSettings);
 
 // === USER ADDRESS ROUTES (for logged-in user) ===
 

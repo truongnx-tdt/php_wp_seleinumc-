@@ -7,7 +7,7 @@ import {
     updateUnit,
     deleteUnit,
 } from '../controllers/unitController.js';
-import { protect, requireAdmin } from '../middleware/authMiddleware.js';
+import { protect, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
 // add swagger
 /**
@@ -50,7 +50,7 @@ import { protect, requireAdmin } from '../middleware/authMiddleware.js';
  *
  */
 router.route('/')
-    .post(protect, requireAdmin, createUnit)
+    .post(protect, requireStaffOrAdmin, createUnit)
     .get(getUnits);
 
 /**
@@ -115,7 +115,7 @@ router.route('/')
  */
 router.route('/:id')
     .get(getUnitById)
-    .put(protect, requireAdmin, updateUnit)
-    .delete(protect, requireAdmin, deleteUnit);
+    .put(protect, requireStaffOrAdmin, updateUnit)
+    .delete(protect, requireStaffOrAdmin, deleteUnit);
 
 export default router; 

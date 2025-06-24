@@ -23,7 +23,8 @@ const userSchema = new mongoose.Schema({
   },
   phone: { type: String },
   addresses: [addressSchema],
-  status: { type: String, required: true, enum: ['active', 'inactive', 'banned'], default: 'active' }
+  status: { type: String, required: true, enum: ['active', 'inactive', 'banned'], default: 'active' },
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

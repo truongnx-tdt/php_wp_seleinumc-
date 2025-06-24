@@ -14,11 +14,7 @@ const Login = () => {
   // If user is already authenticated, redirect to appropriate page
   useEffect(() => {
     if (isAuthenticated && user && !authLoading) {
-      if (user.role === USER_ROLES.ADMIN) {
-        navigate('/dashboard', { replace: true });
-      } else if (user.role === USER_ROLES.STAFF) {
-        navigate('/orders', { replace: true });
-      }
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, user, authLoading, navigate]);
 

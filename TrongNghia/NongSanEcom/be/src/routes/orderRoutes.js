@@ -7,7 +7,7 @@ import {
   getMyOrders,
   getOrders,
 } from '../controllers/orderController.js';
-import { protect, requireAdmin } from '../middleware/authMiddleware.js';
+import { protect, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -55,7 +55,7 @@ const router = express.Router();
 // User routes
 router.route('/')
   .post(protect, addOrderItems)
-  .get(protect, requireAdmin, getOrders);
+  .get(protect, requireStaffOrAdmin, getOrders);
 
 /**
  * @swagger
@@ -230,6 +230,6 @@ router.route('/:id/pay').put(protect, updateOrderToPaid);
  *                     updatedAt:
  *                       type: string
  */
-router.route('/:id/status').put(protect, requireAdmin, updateOrderStatus);
+router.route('/:id/status').put(protect, requireStaffOrAdmin, updateOrderStatus);
 
 export default router;

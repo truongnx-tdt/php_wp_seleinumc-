@@ -1,5 +1,9 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
+import Product from '../models/Product.js';
+import Order from '../models/Order.js';
+import Category from '../models/Category.js';
+import Unit from '../models/Unit.js';
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -258,6 +262,125 @@ const setDefaultAddress = asyncHandler(async (req, res) => {
     }
 });
 
+/**
+ * @desc    Update user profile
+ * @route   PUT /api/users/profile
+ * @access  Private
+ */
+const updateProfile = asyncHandler(async (req, res) => {
+    const { name, email } = req.body;
+
+    // Check if email already exists (excluding current user)
+    const existingUser = await User.findOne({ email, _id: { $ne: req.user._id } });
+    if (existingUser) {
+        res.status(400);
+        throw new Error('Email đã được sử dụng bởi tài khoản khác');
+    }
+
+    const user = await User.findById(req.user._id);
+    if (user) {
+        user.name = name;
+        user.email = email;
+        user.updatedBy = req.user._id;
+
+        const updatedUser = await user.save();
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            createdAt: updatedUser.createdAt,
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
+/**
+ * @desc    Change user password
+ * @route   PUT /api/users/change-password
+ * @access  Private
+ */
+const changePassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    // Check current password
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+        res.status(400);
+        throw new Error('Mật khẩu hiện tại không đúng');
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.updatedBy = req.user._id;
+    await user.save();
+
+    res.json({ message: 'Đổi mật khẩu thành công' });
+});
+
+/**
+ * @desc    Get system settings
+ * @route   GET /api/users/settings
+ * @access  Private/Admin
+ */
+const getSystemSettings = asyncHandler(async (req, res) => {
+    // Get system statistics
+    const [totalUsers, totalProducts, totalOrders, totalCategories, totalUnits] = await Promise.all([
+        User.countDocuments(),
+        Product.countDocuments(),
+        Order.countDocuments(),
+        Category.countDocuments(),
+        Unit.countDocuments(),
+    ]);
+
+    // Get recent activities
+    const recentUsers = await User.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('name email role createdAt');
+
+    const recentProducts = await Product.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('name price createdAt')
+        .populate('category', 'name');
+
+    const recentOrders = await Order.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('orderNumber totalPrice status createdAt')
+        .populate('user', 'name');
+
+    res.json({
+        statistics: {
+            totalUsers,
+            totalProducts,
+            totalOrders,
+            totalCategories,
+            totalUnits,
+        },
+        recentActivities: {
+            users: recentUsers,
+            products: recentProducts,
+            orders: recentOrders,
+        },
+    });
+});
+
+/**
+ * @desc    Get dashboard stats
+ * @route   GET /api/users/dashboard-stats
+ * @access  Private/Admin
+ */
+
 export {
     getUsers,
     getUserById,
@@ -268,5 +391,8 @@ export {
     getUserAddresses,
     updateUserAddress,
     deleteUserAddress,
-    setDefaultAddress
+    setDefaultAddress,
+    updateProfile,
+    changePassword,
+    getSystemSettings
 }; 

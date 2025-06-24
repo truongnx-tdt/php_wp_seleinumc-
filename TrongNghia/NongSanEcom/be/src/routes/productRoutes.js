@@ -106,7 +106,7 @@ const router = express.Router();
  *                     totalPages:
  *                       type: integer
  */
-router.route('/admin').get(protect, requireAdmin, getProductsForAdmin);
+router.route('/admin').get(protect, requireStaffOrAdmin, getProductsForAdmin);
 
 /**
  * @swagger
@@ -342,6 +342,6 @@ router.route('/:id/reviews').post(protect, createProductReview);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/dashboard-stats', protect, requireAdmin, getDashboardStats);
+router.get('/dashboard-stats', protect, requireStaffOrAdmin, getDashboardStats);
 
 export default router; 

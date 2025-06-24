@@ -7,7 +7,7 @@ import {
     updateCategory,
     deleteCategory,
 } from '../controllers/categoryController.js';
-import { protect, requireAdmin } from '../middleware/authMiddleware.js';
+import { protect, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
 // add swagger
 /**
@@ -48,7 +48,7 @@ import { protect, requireAdmin } from '../middleware/authMiddleware.js';
  *
  */
 router.route('/')
-    .post(protect, requireAdmin, createCategory)
+    .post(protect, requireStaffOrAdmin, createCategory)
     .get(getCategories);
 
 /**
@@ -111,8 +111,8 @@ router.route('/')
  */
 router.route('/:id')
     .get(getCategoryById)
-    .put(protect, requireAdmin, updateCategory)
-    .delete(protect, requireAdmin, deleteCategory);
+    .put(protect, requireStaffOrAdmin, updateCategory)
+    .delete(protect, requireStaffOrAdmin, deleteCategory);
 
 export default router;
 
