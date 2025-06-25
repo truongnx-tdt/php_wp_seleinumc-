@@ -26,37 +26,50 @@ export function UserProvider({ children }) {
         if (authStatus.isAuthenticated) {
           setUser(authStatus.user)
           setLoading(false)
+          updateCartCount()
         } else {
           // Thử kiểm tra với server nếu không có user trong localStorage
           try {
             const profile = await authService.getProfile()
             setUser(profile)
             authService.saveAuthData({ user: profile })
+            updateCartCount()
           } catch (error) {
             console.log('User not authenticated')
             setUser(null)
+            setCartCount(0)
           }
         }
       } catch (error) {
         console.error('Auth check error:', error)
         setUser(null)
+        setCartCount(0)
       } finally {
         setLoading(false)
       }
     }
 
     checkAuth()
-    updateCartCount()
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      updateCartCount()
+    } else {
+      setCartCount(0)
+    }
+  }, [user])
 
   const login = (userData) => {
     setUser(userData)
     authService.saveAuthData({ user: userData })
+    updateCartCount()
   }
 
   const logout = () => {
     setUser(null)
     authService.clearAuthData()
+    setCartCount(0)
   }
 
   const updateUser = (userData) => {

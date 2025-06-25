@@ -4,11 +4,9 @@ import API from './api';
 const CART_ENDPOINTS = {
   GET: '/api/cart',
   ADD_ITEM: '/api/cart/items',
-  UPDATE_ITEM: '/api/cart/update',
-  REMOVE_ITEM: '/api/cart/remove',
-  CLEAR: '/api/cart/clear',
-  APPLY_COUPON: '/api/cart/apply-coupon',
-  REMOVE_COUPON: '/api/cart/remove-coupon',
+  UPDATE_ITEM: '/api/cart/items',
+  REMOVE_ITEM: '/api/cart/items',
+  CLEAR: '/api/cart',
 };
 
 export const cartService = {
@@ -29,8 +27,7 @@ export const cartService = {
 
   // Cập nhật số lượng sản phẩm trong giỏ hàng
   updateCartItem: async (productId, quantity) => {
-    const response = await API.put(CART_ENDPOINTS.UPDATE_ITEM, {
-      productId,
+    const response = await API.put(`${CART_ENDPOINTS.UPDATE_ITEM}/${productId}`, {
       quantity,
     });
     return response.data;
@@ -48,25 +45,13 @@ export const cartService = {
     return response.data;
   },
 
-  // Áp dụng mã giảm giá
-  applyCoupon: async (couponCode) => {
-    const response = await API.post(CART_ENDPOINTS.APPLY_COUPON, {
-      couponCode,
-    });
-    return response.data;
-  },
-
-  // Xóa mã giảm giá
-  removeCoupon: async () => {
-    const response = await API.delete(CART_ENDPOINTS.REMOVE_COUPON);
-    return response.data;
-  },
-
   // Lấy số lượng sản phẩm trong giỏ hàng
   getCartItemCount: async () => {
     try {
       const response = await API.get(CART_ENDPOINTS.GET);
-      return response.data.items?.length || 0;
+      const items = response.data.items || [];
+      // Tổng quantity của tất cả item
+      return items.reduce((sum, item) => sum + item.quantity, 0);
     } catch (error) {
       return 0;
     }

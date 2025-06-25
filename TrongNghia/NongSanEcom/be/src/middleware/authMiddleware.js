@@ -12,8 +12,7 @@ const protect = asyncHandler(async (req, res, next) => {
     let token = req.cookies.jwt;
 
     if (!token) {
-        res.status(401);
-        throw new Error('Not authorized, no token');
+        res.status(401).json({ message: 'Not authorized, no token' });
     }
 
     try {
@@ -21,14 +20,12 @@ const protect = asyncHandler(async (req, res, next) => {
         req.user = await User.findById(decoded.userId).select('-password');
 
         if (!req.user) {
-            res.status(401);
-            throw new Error('Not authorized, user not found for this token');
+            res.status(401).json({ message: 'Not authorized, user not found for this token' });
         }
         next();
     } catch (error) {
         logger.warn('Token verification failed', { error: error.message, ip: req.ip });
-        res.status(401);
-        throw new Error('Not authorized, token failed');
+        res.status(401).json({ message: 'Not authorized, token failed' });
     }
 });
 
@@ -40,8 +37,7 @@ const requireAdmin = (req, res, next) => {
     if (req.user && req.user.role === USER_ROLES.ADMIN) {
         next();
     } else {
-        res.status(403);
-        throw new Error('Not authorized as an admin');
+        res.status(403).json({ message: 'Not authorized as an admin' });
     }
 };
 
@@ -53,8 +49,7 @@ const requireStaffOrAdmin = (req, res, next) => {
     if (req.user && (req.user.role === USER_ROLES.STAFF || req.user.role === USER_ROLES.ADMIN)) {
         next();
     } else {
-        res.status(403);
-        throw new Error('Not authorized as a staff or admin');
+        res.status(403).json({ message: 'Not authorized as a staff or admin' });
     }
 };
 
