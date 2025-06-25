@@ -1,5 +1,6 @@
 export const NAV_LINKS = [
   { path: '/products', label: 'Sản phẩm' },
+  { path: '/categories', label: 'Danh mục' },
   { path: '/about', label: 'Giới thiệu' },
 ]
 
@@ -11,9 +12,8 @@ export const AUTH_LINKS = [
 export const ROUTES = {
   HOME: '/',
   PRODUCTS: '/products',
-  SUPPLIERS: '/suppliers',
+  CATEGORIES: '/categories',
   ABOUT: '/about',
-  TEAM: '/team',
   LOGIN: '/login',
   REGISTER: '/register',
   CART: '/cart'

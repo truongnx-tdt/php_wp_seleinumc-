@@ -8,12 +8,21 @@ const API = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 seconds timeout
 });
+
+// Debug logging
+console.log('API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 // Response interceptor để xử lý lỗi
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', error.config?.url, error.response?.status, error.message);
+    
     if (error.response?.status === 401) {
       // Xử lý lỗi authentication
       toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
@@ -24,6 +33,10 @@ API.interceptors.response.use(
       toast.error('Lỗi server. Vui lòng thử lại sau.');
     } else if (error.response?.data?.message) {
       toast.error(error.response.data.message);
+    } else if (error.code === 'ECONNABORTED') {
+      toast.error('Kết nối timeout. Vui lòng thử lại.');
+    } else if (error.code === 'ERR_NETWORK') {
+      toast.error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
     } else {
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
     }
@@ -38,9 +51,11 @@ API.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => {
+    console.error('API Request Error:', error);
     return Promise.reject(error);
   }
 );

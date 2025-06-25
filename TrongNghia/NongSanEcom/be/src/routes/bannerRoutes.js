@@ -22,11 +22,11 @@ router.route('/')
   .get(protect, requireAdmin, getBanners)
   .post(protect, requireAdmin, createBanner);
 
+router.put('/:id/toggle', protect, requireAdmin, toggleBannerStatus);
+router.put('/:id/priority', protect, requireAdmin, updateBannerPriority);
+
 router.route('/:id')
   .put(protect, requireAdmin, updateBanner)
   .delete(protect, requireAdmin, deleteBanner);
-
-router.patch('/:id/toggle', protect, requireAdmin, toggleBannerStatus);
-router.patch('/:id/priority', protect, requireAdmin, updateBannerPriority);
 
 export default router; 

@@ -15,7 +15,7 @@ const AdminLayout = () => {
 
       {/* Mobile Sidebar */}
       <div 
-        className={`fixed inset-0 z-30 md:hidden transition-opacity duration-300 ${isSidebarOpen ? 'bg-black bg-opacity-50' : 'bg-transparent pointer-events-none'}`}
+        className={`fixed inset-0 z-30 md:hidden transition-opacity duration-300 ${isSidebarOpen ? 'bg-black opacity-50' : 'bg-transparent pointer-events-none'}`}
         onClick={() => setSidebarOpen(false)}
       ></div>
       <div

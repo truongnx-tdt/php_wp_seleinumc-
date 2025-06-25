@@ -14,10 +14,20 @@
     "build:client": "cd fe/client && npm run build",
     "start": "cd be && npm start"
   },
-  "keywords": ["ecommerce", "nongsan", "fullstack", "react", "nodejs"],
+  "keywords": [
+    "ecommerce",
+    "nongsan",
+    "fullstack",
+    "react",
+    "nodejs"
+  ],
   "author": "NongSan Team",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "framer-motion": "^12.19.1",
+    "react-fullpage": "^0.1.19"
   }
-} 
+}

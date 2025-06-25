@@ -104,7 +104,6 @@ export const BANNER_ENDPOINTS = {
 // Banner position options
 export const BANNER_POSITIONS = [
   { value: 'home', label: 'Trang chủ' },
-  { value: 'category', label: 'Trang danh mục' },
   { value: 'product', label: 'Trang sản phẩm' },
   { value: 'custom', label: 'Tùy chỉnh' },
 ];

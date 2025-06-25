@@ -8,10 +8,21 @@ export const bannerService = {
       if (category) {
         params.append('category', category);
       }
-      const response = await api.get(`/api/banners/public?${params.toString()}`);
+      
+      const url = `/api/banners/public?${params.toString()}`;
+      console.log('Calling banner API:', url);
+      
+      const response = await api.get(url);
+      console.log('Banner API response:', response);
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching public banners:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       throw error;
     }
   },

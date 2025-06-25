@@ -155,7 +155,7 @@ const ProductFormModal = ({ isOpen, onClose, editingProduct, formData, setFormDa
                   >
                     ×
                   </button>
-                  <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                  <div className="absolute bottom-1 left-1 bg-black opacity-50 text-white text-xs px-2 py-1 rounded">
                     {typeof img === 'string' ? 'Đã lưu' : 'Mới'}
                   </div>
                 </div>

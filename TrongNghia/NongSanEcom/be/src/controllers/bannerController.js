@@ -7,7 +7,7 @@ import { asyncHandler } from '../middleware/errorMiddleware.js';
  */
 export const getBanners = asyncHandler(async (req, res) => {
     const pageSize = 12;
-    const page = Number(req.query.pageNumber) || 1;
+    const page = Number(req.query.pageNumber) || Number(req.query.page) || 1;
 
     const keyword = req.query.keyword ? {
         $or: [
@@ -18,7 +18,7 @@ export const getBanners = asyncHandler(async (req, res) => {
     } : {};
     
     const position = req.query.position ? { position: req.query.position } : {};
-    const isActive = req.query.isActive !== undefined ? { isActive: req.query.isActive === 'true' } : {};
+    const isActive = req.query.isActive !== undefined && req.query.isActive !== '' ? { isActive: req.query.isActive === 'true' || req.query.isActive === true } : {};
 
     // Filter by date range
     const dateFilter = {};
@@ -39,7 +39,17 @@ export const getBanners = asyncHandler(async (req, res) => {
         .limit(pageSize)
         .skip(pageSize * (page - 1));
 
-    res.json({ banners, page, pages: Math.ceil(count / pageSize) });
+    // Chuẩn hóa object pagination
+    const pagination = {
+      page,
+      limit: pageSize,
+      total: count,
+      totalPages: Math.ceil(count / pageSize),
+      hasNext: page < Math.ceil(count / pageSize),
+      hasPrev: page > 1
+    };
+
+    res.json({ banners, pagination });
 });
 
 /**

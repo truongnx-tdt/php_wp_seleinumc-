@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { FiX, FiUpload } from 'react-icons/fi';
 import { BANNER_POSITIONS } from '../../constants';
 
-const BannerFormModal = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  formData, 
-  onChange, 
+const BannerFormModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  onChange,
   editingBanner,
   CATEGORY_OPTIONS,
   PRODUCT_OPTIONS,
-  submitLoading 
+  submitLoading
 }) => {
   const [imagePreview, setImagePreview] = useState(formData.image || '');
 
@@ -39,8 +39,8 @@ const BannerFormModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -55,7 +55,7 @@ const BannerFormModal = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 max-h-[90vh] overflow-y-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-6">
@@ -64,7 +64,7 @@ const BannerFormModal = ({
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
                   Thông tin cơ bản
                 </h3>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Tiêu đề <span className="text-red-500">*</span>
@@ -114,7 +114,7 @@ const BannerFormModal = ({
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
                   Thông tin liên kết
                 </h3>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Đường dẫn
@@ -149,7 +149,7 @@ const BannerFormModal = ({
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
                   Cài đặt
                 </h3>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Vị trí hiển thị
@@ -243,7 +243,7 @@ const BannerFormModal = ({
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
                   Hình ảnh
                 </h3>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Hình ảnh banner <span className="text-red-500">*</span>
@@ -296,7 +296,7 @@ const BannerFormModal = ({
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
                   Thời gian hiển thị
                 </h3>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Ngày bắt đầu
@@ -329,7 +329,7 @@ const BannerFormModal = ({
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
                   Màu sắc
                 </h3>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Màu nền

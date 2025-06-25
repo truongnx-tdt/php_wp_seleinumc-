@@ -15,6 +15,10 @@
     }
 }
 
+.opacity-40 {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
 @layer components {
 
     /* Line clamp utility */
@@ -156,6 +160,158 @@
     .badge-info {
         @apply bg-blue-100 text-blue-800;
     }
+
+    /* Banner Fullpage specific styles */
+    .banner-fullpage {
+        @apply relative overflow-hidden;
+    }
+
+    .banner-background {
+        @apply absolute inset-0 w-full h-full;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .banner-overlay {
+        @apply absolute inset-0 bg-black opacity-40;
+    }
+
+    .banner-content {
+        @apply relative z-10 flex flex-col items-center justify-center h-full text-center px-4;
+    }
+
+    .banner-title {
+        @apply text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-subtitle {
+        @apply text-xl md:text-2xl mb-4 drop-shadow-md;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-description {
+        @apply max-w-xl mx-auto mb-6 drop-shadow-md text-lg;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-button {
+        @apply inline-block bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-lg;
+        backdrop-filter: blur(10px);
+    }
+
+    .banner-dots {
+        @apply absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20;
+    }
+
+    .banner-dot {
+        @apply w-4 h-4 rounded-full transition-all duration-300 cursor-pointer;
+    }
+
+    .banner-dot.active {
+        @apply bg-white scale-125;
+    }
+
+    .banner-dot.inactive {
+        @apply bg-white opacity-50 hover:opacity-75;
+    }
+
+    .banner-progress {
+        @apply absolute top-0 left-0 w-full h-1 bg-black opacity-20 z-20;
+    }
+
+    .banner-progress-bar {
+        @apply h-full bg-white transition-all duration-600 ease-in-out;
+    }
+
+    .banner-scroll-indicator {
+        @apply absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white text-center z-20;
+    }
+
+    /* Smooth scroll behavior for banner transitions */
+    .banner-smooth-scroll {
+        scroll-behavior: smooth;
+    }
+
+    /* Prevent scroll during banner transitions */
+    .banner-no-scroll {
+        overflow: hidden !important;
+    }
+
+    /* Loading spinner for banner images */
+    .banner-loading {
+        @apply absolute inset-0 bg-black opacity-50 z-3 flex items-center justify-center;
+    }
+
+    .banner-loading-spinner {
+        @apply animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4;
+    }
+
+    /* Parallax effect for banner backgrounds */
+    .banner-parallax {
+        animation: bannerParallax 15s infinite alternate ease-in-out;
+    }
+
+    @keyframes bannerParallax {
+        0% {
+            transform: scale(1);
+        }
+
+        100% {
+            transform: scale(1.05);
+        }
+    }
+
+    /* Fade in animation for banner content */
+    .banner-fade-in {
+        animation: bannerFadeIn 0.8s ease-out;
+    }
+
+    @keyframes bannerFadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Slide animation for banner transitions */
+    .banner-slide-up {
+        animation: bannerSlideUp 0.6s ease-out;
+    }
+
+    .banner-slide-down {
+        animation: bannerSlideDown 0.6s ease-out;
+    }
+
+    @keyframes bannerSlideUp {
+        0% {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes bannerSlideDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 }
 
 @layer utilities {
@@ -183,8 +339,32 @@
     .shadow-medium {
         box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
+
+    /* Banner specific utilities */
+    .banner-text-shadow {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+
+    .banner-text-shadow-light {
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-backdrop-blur {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
 }
 
-.bg-opacity-20 {
-    background-color: rgba(255, 255, 255, 0.2);
+/* Ẩn scroll nhưng vẫn cuộn được */
+.hide-scrollbar {
+    overflow: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE 10+ */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Edge */
 }

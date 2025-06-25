@@ -1,0 +1,496 @@
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaChevronDown, FaArrowUp } from 'react-icons/fa';
+import useBanners from '../hooks/useBanners';
+
+// Component để preload ảnh
+const ImagePreloader = ({ src, onLoad, onError }) => {
+  useEffect(() => {
+    if (!src) return;
+    
+    const img = new Image();
+    img.onload = () => onLoad && onLoad(src);
+    img.onerror = () => onError && onError(src);
+    img.src = src;
+  }, [src, onLoad, onError]);
+
+  return null;
+};
+
+const BannerFullpage = ({ position = 'home', category = null, children }) => {
+  const { banners, loading } = useBanners(position, category);
+  const [current, setCurrent] = useState(0);
+  const [showContent, setShowContent] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const containerRef = useRef(null);
+  const contentRef = useRef(null);
+  const isScrolling = useRef(false);
+  const scrollTimeout = useRef(null);
+  const preloadedImagesRef = useRef(new Set());
+  const loadedCountRef = useRef(0);
+
+  // Preload images for smooth transitions
+  useEffect(() => {
+    if (banners.length > 0) {
+      setImageLoading(true);
+      loadedCountRef.current = 0;
+      
+      banners.forEach((banner, index) => {
+        if (banner.image && !preloadedImagesRef.current.has(banner.image)) {
+          const img = new Image();
+          img.onload = () => {
+            preloadedImagesRef.current.add(banner.image);
+            loadedCountRef.current += 1;
+            
+            // Set loading to false when first image is loaded
+            if (index === 0) {
+              setImageLoading(false);
+            }
+          };
+          img.onerror = () => {
+            console.warn('Failed to load image:', banner.image);
+            loadedCountRef.current += 1;
+            
+            // Set loading to false when first image fails to load
+            if (index === 0) {
+              setImageLoading(false);
+            }
+          };
+          img.src = banner.image;
+        } else if (banner.image && preloadedImagesRef.current.has(banner.image)) {
+          // Image already preloaded
+          loadedCountRef.current += 1;
+          if (index === 0) {
+            setImageLoading(false);
+          }
+        }
+      });
+      
+      // If no images to load, set loading to false immediately
+      if (banners.every(banner => !banner.image || preloadedImagesRef.current.has(banner.image))) {
+        setImageLoading(false);
+      }
+    }
+  }, [banners]); // Remove preloadedImages from dependency
+
+  // Reset khi banners thay đổi
+  useEffect(() => {
+    setCurrent(0);
+    setShowContent(false);
+    setIsTransitioning(false);
+    setImageLoading(true);
+    loadedCountRef.current = 0;
+  }, [banners.length]);
+
+  // Xử lý chuyển banner với debounce
+  const goToNext = useCallback(() => {
+    if (isTransitioning || scrollTimeout.current) return;
+    
+    scrollTimeout.current = setTimeout(() => {
+      scrollTimeout.current = null;
+    }, 500);
+    
+    setIsTransitioning(true);
+    if (current < banners.length - 1) {
+      setCurrent(prev => prev + 1);
+    } else {
+      // Đã ở ảnh cuối, chuyển sang content và cho phép scroll bình thường
+      setShowContent(true);
+      if (containerRef.current) {
+        containerRef.current.style.overflow = 'auto';
+      }
+    }
+    
+    setTimeout(() => setIsTransitioning(false), 600);
+  }, [current, banners.length, isTransitioning]);
+
+  const goToPrev = useCallback(() => {
+    if (isTransitioning || scrollTimeout.current) return;
+    
+    scrollTimeout.current = setTimeout(() => {
+      scrollTimeout.current = null;
+    }, 500);
+    
+    setIsTransitioning(true);
+    if (showContent) {
+      setShowContent(false);
+      if (containerRef.current) {
+        containerRef.current.style.overflow = 'hidden';
+      }
+    } else if (current > 0) {
+      setCurrent(prev => prev - 1);
+    }
+    
+    setTimeout(() => setIsTransitioning(false), 600);
+  }, [current, showContent, isTransitioning]);
+
+  // Xử lý scroll để chuyển ảnh (chỉ khi chưa show content)
+  const handleWheel = useCallback(
+    (e) => {
+      if (isScrolling.current || isTransitioning || showContent || scrollTimeout.current) {
+        return;
+      }
+      
+      e.preventDefault();
+      isScrolling.current = true;
+      
+      if (e.deltaY > 0) {
+        goToNext();
+      } else if (e.deltaY < 0) {
+        goToPrev();
+      }
+      
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 800);
+    },
+    [goToNext, goToPrev, isTransitioning, showContent]
+  );
+
+  // Xử lý keyboard navigation
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (isTransitioning) return;
+      
+      switch (e.key) {
+        case 'ArrowDown':
+        case 'PageDown':
+        case ' ':
+          e.preventDefault();
+          goToNext();
+          break;
+        case 'ArrowUp':
+        case 'PageUp':
+          e.preventDefault();
+          goToPrev();
+          break;
+        case 'Home':
+          e.preventDefault();
+          setCurrent(0);
+          setShowContent(false);
+          break;
+        case 'End':
+          e.preventDefault();
+          setCurrent(banners.length - 1);
+          setShowContent(false);
+          break;
+        default:
+          break;
+      }
+    },
+    [goToNext, goToPrev, isTransitioning, banners.length]
+  );
+
+  // Xử lý touch/swipe với cải thiện
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd || showContent || isTransitioning) return;
+    
+    const distance = touchStart - touchEnd;
+    const isUpSwipe = distance > 80;
+    const isDownSwipe = distance < -80;
+
+    if (isUpSwipe) {
+      goToNext();
+    } else if (isDownSwipe) {
+      goToPrev();
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  // Xử lý scroll to top
+  const scrollToTop = () => {
+    if (showContent) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setCurrent(0);
+    }
+  };
+
+  // Theo dõi scroll để hiển thị nút go to top
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showContent) {
+        setShowScrollToTop(window.scrollY > 300);
+      } else {
+        setShowScrollToTop(current > 0);
+      }
+    };
+
+    if (showContent) {
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [showContent, current]);
+
+  useEffect(() => {
+    const ref = containerRef.current;
+    if (!ref) return;
+    
+    if (!showContent) {
+      ref.addEventListener('wheel', handleWheel, { passive: false });
+      ref.addEventListener('keydown', handleKeyDown);
+      ref.addEventListener('touchstart', handleTouchStart, { passive: true });
+      ref.addEventListener('touchmove', handleTouchMove, { passive: true });
+      ref.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+    
+    return () => {
+      if (!showContent) {
+        ref.removeEventListener('wheel', handleWheel);
+        ref.removeEventListener('keydown', handleKeyDown);
+        ref.removeEventListener('touchstart', handleTouchStart);
+        ref.removeEventListener('touchmove', handleTouchMove);
+        ref.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, [handleWheel, handleKeyDown, showContent]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+    };
+  }, []);
+
+  if (loading || banners.length === 0) return null;
+
+  return (
+    <div 
+      ref={containerRef} 
+      className={`${showContent ? 'min-h-screen' : 'h-screen'} w-full relative`}
+      style={{ 
+        overflow: showContent ? 'auto' : 'hidden',
+        outline: 'none' 
+      }}
+      tabIndex={0}
+    >
+      {/* Preload all banner images */}
+      {banners.map((banner, index) => (
+        <ImagePreloader
+          key={`preload-${banner._id}`}
+          src={banner.image}
+          onLoad={(src) => {
+            preloadedImagesRef.current.add(src);
+            if (index === 0) setImageLoading(false);
+          }}
+          onError={(src) => {
+            console.warn('Failed to preload image:', src);
+            if (index === 0) setImageLoading(false);
+          }}
+        />
+      ))}
+
+      <AnimatePresence mode="wait">
+        {!showContent && (
+          <motion.div
+            key={`banner-${current}`}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ 
+              duration: 0.6, 
+              ease: [0.4, 0.0, 0.2, 1]
+            }}
+            className="absolute inset-0 w-full h-full"
+            style={{
+              background: banners[current]?.backgroundColor || '#222',
+              color: banners[current]?.textColor || '#fff',
+              zIndex: 2,
+            }}
+          >
+            {/* Background Image with improved Parallax Effect */}
+            {banners[current]?.image && (
+              <motion.div
+                className="absolute inset-0 w-full h-full"
+                style={{
+                  backgroundImage: `url(${banners[current].image})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  zIndex: 1,
+                }}
+                animate={{
+                  scale: [1, 1.05],
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "linear"
+                }}
+              />
+            )}
+            
+            {/* Loading overlay */}
+            {imageLoading && (
+              <motion.div
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black bg-opacity-50 z-3 flex items-center justify-center"
+              >
+                <div className="text-white text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                  <p>Đang tải ảnh...</p>
+                </div>
+              </motion.div>
+            )}
+            
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black bg-opacity-40 z-2" />
+            
+            {/* Content */}
+            <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
+              {banners[current]?.title && (
+                <motion.h1 
+                  className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg"
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                >
+                  {banners[current].title}
+                </motion.h1>
+              )}
+              
+              {banners[current]?.subtitle && (
+                <motion.p 
+                  className="text-xl md:text-2xl mb-4 drop-shadow-md"
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                >
+                  {banners[current].subtitle}
+                </motion.p>
+              )}
+              
+              {banners[current]?.description && (
+                <motion.p 
+                  className="max-w-xl mx-auto mb-6 drop-shadow-md text-lg"
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.8 }}
+                >
+                  {banners[current].description}
+                </motion.p>
+              )}
+              
+              {banners[current]?.link && banners[current]?.linkText && (
+                <motion.a 
+                  href={banners[current].link} 
+                  className="inline-block bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-lg"
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 0.8 }}
+                >
+                  {banners[current].linkText}
+                </motion.a>
+              )}
+            </div>
+
+            {/* Navigation Dots */}
+            {banners.length > 1 && (
+              <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
+                {banners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      if (!isTransitioning) {
+                        setIsTransitioning(true);
+                        setCurrent(idx);
+                        setTimeout(() => setIsTransitioning(false), 600);
+                      }
+                    }}
+                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                      idx === current 
+                        ? 'bg-white scale-125' 
+                        : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                    }`}
+                    aria-label={`Chuyển đến banner ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Scroll Indicator */}
+            <motion.div 
+              className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white text-center z-20"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="flex flex-col items-center space-y-2">
+                <FaChevronDown className="text-2xl" />
+                <p className="text-sm opacity-80">
+                  {current < banners.length - 1 ? 'Cuộn xuống để xem banner tiếp theo' : 'Cuộn xuống để xem nội dung'}
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Progress Bar */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-black bg-opacity-20 z-20">
+              <motion.div
+                className="h-full bg-white"
+                initial={{ width: 0 }}
+                animate={{ width: `${((current + 1) / banners.length) * 100}%` }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <AnimatePresence>
+        {showContent && (
+          <motion.div
+            key="content"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ 
+              duration: 0.8, 
+              ease: [0.4, 0.0, 0.2, 1] 
+            }}
+            className="relative z-1 w-full"
+            ref={contentRef}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 z-50 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+            aria-label="Cuộn lên đầu trang"
+          >
+            <FaArrowUp className="text-xl" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default BannerFullpage; 

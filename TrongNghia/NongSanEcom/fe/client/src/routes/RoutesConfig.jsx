@@ -3,7 +3,6 @@ import Home from '../pages/Home/Home';
 import ProductsPage from '../pages/Products/ProductsPage';
 import ProductDetailPage from '../pages/Products/ProductDetailPage';
 import AboutPage from '../pages/About/AboutPage';
-import TeamPage from '../pages/team/TeamPage';
 import Login from '../pages/Auth/Login';
 import Register from '../pages/Auth/Register';
 import { ROUTES } from '../constants/navigation';
@@ -16,7 +15,6 @@ const RoutesConfig = () => (
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
         <Route path={ROUTES.ABOUT} element={<AboutPage />} />
-        <Route path={ROUTES.TEAM} element={<TeamPage />} />
     </Routes>
 );
 
