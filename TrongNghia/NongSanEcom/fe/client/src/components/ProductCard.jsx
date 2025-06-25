@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaLeaf, FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import cartService from '../services/cartService';
+import { useUser } from '../UserContext';
 
 const ProductCard = ({ product, showWishlist = true, showAddToCart = true }) => {
   const navigate = useNavigate();
+  const { user, updateCartCount } = useUser();
+  const [adding, setAdding] = useState(false);
 
   const calculateDiscountedPrice = (price, discount) => {
     return price * (1 - discount / 100);
@@ -28,10 +33,23 @@ const ProductCard = ({ product, showWishlist = true, showAddToCart = true }) => 
     return 'kg';
   };
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.stopPropagation();
-    // TODO: Implement add to cart functionality
-    console.log('Add to cart:', product._id);
+    if (!user) {
+      toast.info('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+      navigate('/login');
+      return;
+    }
+    setAdding(true);
+    try {
+      await cartService.addToCart(product._id, 1);
+      updateCartCount && updateCartCount();
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (err) {
+      toast.error('Thêm vào giỏ hàng thất bại!');
+    } finally {
+      setAdding(false);
+    }
   };
 
   const handleAddToWishlist = (e) => {
@@ -150,10 +168,15 @@ const ProductCard = ({ product, showWishlist = true, showAddToCart = true }) => 
           {showAddToCart && product.countInStock > 0 && (
             <button
               onClick={handleAddToCart}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-lg transition duration-300"
+              className="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-lg transition duration-300 min-w-[44px] flex items-center justify-center"
               title="Thêm vào giỏ hàng"
+              disabled={adding}
             >
-              <FaShoppingCart className="w-4 h-4" />
+              {adding ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                <FaShoppingCart className="w-4 h-4" />
+              )}
             </button>
           )}
         </div>

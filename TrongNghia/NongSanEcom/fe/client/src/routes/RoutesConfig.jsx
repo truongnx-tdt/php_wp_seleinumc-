@@ -7,6 +7,7 @@ import Login from '../pages/Auth/Login';
 import Register from '../pages/Auth/Register';
 import NotFound from '../pages/NotFound';
 import { ROUTES } from '../constants/navigation';
+import CartPage from '../pages/Products/CartPage';
 
 const RoutesConfig = () => (
     <Routes>
@@ -16,7 +17,7 @@ const RoutesConfig = () => (
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
         <Route path={ROUTES.ABOUT} element={<AboutPage />} />
-        
+        <Route path={ROUTES.CART} element={<CartPage />} />
         {/* 404 - Catch all undefined routes */}
         <Route path="*" element={<NotFound />} />
     </Routes>

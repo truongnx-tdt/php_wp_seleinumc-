@@ -6,7 +6,7 @@ import Product from '../models/Product.js';
 // @route   GET /api/cart
 // @access  Private
 const getCart = asyncHandler(async (req, res) => {
-  const cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name price images');
+  const cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name price images countInStock discount');
   
   if (cart) {
     res.json(cart);
@@ -46,7 +46,7 @@ const addItemToCart = asyncHandler(async (req, res) => {
     }
 
     await cart.save();
-    const populatedCart = await cart.populate('items.product', 'name price images');
+    const populatedCart = await cart.populate('items.product', 'name price images countInStock discount');
     res.status(201).json(populatedCart);
 });
 
@@ -72,7 +72,7 @@ const updateCartItemQuantity = asyncHandler(async (req, res) => {
         cart.items.splice(itemIndex, 1);
       }
       await cart.save();
-      const populatedCart = await cart.populate('items.product', 'name price images');
+      const populatedCart = await cart.populate('items.product', 'name price images countInStock discount');
       res.json(populatedCart);
     } else {
       res.status(404);
@@ -103,7 +103,7 @@ const removeItemFromCart = asyncHandler(async (req, res) => {
         }
 
         await cart.save();
-        const populatedCart = await cart.populate('items.product', 'name price images');
+        const populatedCart = await cart.populate('items.product', 'name price images countInStock discount');
         res.json(populatedCart);
     } else {
         res.status(404);
