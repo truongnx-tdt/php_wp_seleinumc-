@@ -3,7 +3,7 @@ import API from './api';
 // Cart API endpoints
 const CART_ENDPOINTS = {
   GET: '/api/cart',
-  ADD_ITEM: '/api/cart/add',
+  ADD_ITEM: '/api/cart/items',
   UPDATE_ITEM: '/api/cart/update',
   REMOVE_ITEM: '/api/cart/remove',
   CLEAR: '/api/cart/clear',

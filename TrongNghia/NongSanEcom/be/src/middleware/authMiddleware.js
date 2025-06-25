@@ -68,7 +68,7 @@ const requests = new Map();
  * @param {number} windowMs - The time window in milliseconds.
  * @param {number} max - The max number of requests allowed in the time window.
  */
-const rateLimitFunction = (windowMs = 15 * 60 * 1000, max = 200) => {
+const rateLimitFunction = (windowMs = 15 * 60 * 1000, max = 2000) => {
     return (req, res, next) => {
         const ip = req.ip;
         const now = Date.now();

@@ -1,11 +1,22 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import authService from './services/authService'
+import cartService from './services/cartService'
 
 const UserContext = createContext()
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [cartCount, setCartCount] = useState(0)
+
+  const updateCartCount = async () => {
+    if (user) {
+      const count = await cartService.getCartItemCount()
+      setCartCount(count)
+    } else {
+      setCartCount(0)
+    }
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,6 +46,7 @@ export function UserProvider({ children }) {
     }
 
     checkAuth()
+    updateCartCount()
   }, [])
 
   const login = (userData) => {
@@ -59,6 +71,8 @@ export function UserProvider({ children }) {
     logout,
     updateUser,
     isAuthenticated: !!user,
+    cartCount,
+    updateCartCount,
   }
 
   return (

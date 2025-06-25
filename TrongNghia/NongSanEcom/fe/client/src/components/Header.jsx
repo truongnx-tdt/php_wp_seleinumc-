@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '../UserContext';
 import { NAV_LINKS, AUTH_LINKS, ROUTES } from '../constants/navigation';
 import { FaSearch, FaShoppingCart, FaUser, FaBars, FaTimes, FaHeart } from 'react-icons/fa';
 import authService from '../services/authService';
+import cartService from '../services/cartService';
+import { toast } from 'react-toastify';
 
 const NavigationLink = ({ to, children, className = '', onClick }) => (
   <Link
@@ -44,16 +46,29 @@ const SearchBar = ({ onSearch }) => {
   );
 };
 
-const CartIcon = () => (
-  <Link to={ROUTES.CART} className="relative group" aria-label="Giỏ hàng">
-    <div className="relative p-2 text-white hover:text-green-200 transition-colors duration-200">
-      <FaShoppingCart className="w-6 h-6" />
-      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-        0
-      </span>
-    </div>
-  </Link>
-);
+const CartIcon = ({ cartCount = 0 }) => {
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const handleClick = (e) => {
+    e.preventDefault();
+    if (!user) {
+      toast.info('Vui lòng đăng nhập để xem giỏ hàng!');
+      navigate('/login');
+      return;
+    }
+    navigate('/cart');
+  };
+  return (
+    <button onClick={handleClick} className="relative group" aria-label="Giỏ hàng">
+      <div className="relative p-2 text-white hover:text-green-200 transition-colors duration-200">
+        <FaShoppingCart className="w-6 h-6" />
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          {cartCount}
+        </span>
+      </div>
+    </button>
+  );
+};
 
 const WishlistIcon = () => (
   <Link to="/wishlist" className="p-2 text-white hover:text-red-400 transition-colors duration-200" aria-label="Yêu thích">
@@ -126,7 +141,7 @@ const MobileMenu = ({ isOpen, onClose, children }) => (
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useUser();
+  const { user, logout, cartCount } = useUser();
 
   const handleLogout = async () => {
     try {
@@ -160,7 +175,7 @@ const Header = () => {
         </NavigationLink>
       ))}
 
-      {!isMobile && <CartIcon />}
+      {!isMobile && <CartIcon cartCount={cartCount} />}
       {!isMobile && <WishlistIcon />}
 
       {user ? (
