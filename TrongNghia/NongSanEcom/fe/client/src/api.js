@@ -3,7 +3,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API_ENDPOINTS = {
   REGISTER: '/api/auth/register',
   LOGIN: '/api/auth/login',
-  PROFILE: '/api/auth/profile'
+  PROFILE: '/api/auth/profile',
+  LOGOUT: '/api/auth/logout'
 };
 
 const handleResponse = async (response) => {
@@ -18,6 +19,7 @@ export const registerUser = async (data) => {
   const response = await fetch(`${API_URL}${API_ENDPOINTS.REGISTER}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(data),
   });
   return handleResponse(response);
@@ -27,14 +29,23 @@ export const loginUser = async (data) => {
   const response = await fetch(`${API_URL}${API_ENDPOINTS.LOGIN}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(data),
   });
   return handleResponse(response);
 };
 
-export const getUserProfile = async (token) => {
+export const getUserProfile = async () => {
   const response = await fetch(`${API_URL}${API_ENDPOINTS.PROFILE}`, {
-    headers: { 'Authorization': `Bearer ${token}` },
+    credentials: 'include',
   });
   return handleResponse(response);
-}; 
+};
+
+export const logoutUser = async () => {
+  const response = await fetch(`${API_URL}${API_ENDPOINTS.LOGOUT}`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return handleResponse(response);
+};

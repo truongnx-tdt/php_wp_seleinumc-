@@ -108,7 +108,7 @@ const UserMenu = ({ user, onLogout }) => {
 
 const MobileMenu = ({ isOpen, onClose, children }) => (
   <div className={`md:hidden fixed inset-0 z-50 ${isOpen ? 'block' : 'hidden'}`}>
-    <div className="fixed inset-0 bg-black bg-opacity-20" onClick={onClose}></div>
+    <div className="fixed inset-0 bg-black opacity-20" onClick={onClose}></div>
     <div className="fixed right-0 top-0 h-full w-64 bg-green-800 shadow-lg transform transition-transform duration-300">
       <div className="flex justify-between items-center p-4 border-b border-green-700">
         <h3 className="text-white font-semibold">Menu</h3>
@@ -133,13 +133,11 @@ const Header = () => {
       await authService.logout();
       logout();
       navigate(ROUTES.HOME);
-      window.location.reload();
     } catch (error) {
       console.error('Logout error:', error);
       // Vẫn logout local nếu API fail
       logout();
       navigate(ROUTES.HOME);
-      window.location.reload();
     }
   };
 

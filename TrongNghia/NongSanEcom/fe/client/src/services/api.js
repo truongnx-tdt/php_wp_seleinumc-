@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 // Tạo instance axios cho client
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
-  withCredentials: true,
+  withCredentials: true, // Gửi cookies
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,10 +23,16 @@ API.interceptors.response.use(
   (error) => {
     console.error('API Error:', error.config?.url, error.response?.status, error.message);
     
+    // Nếu lỗi 401 (Unauthorized) - cookie đã hết hạn
     if (error.response?.status === 401) {
-      // Xử lý lỗi authentication
-      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      // Có thể redirect về trang login
+      // Xóa user khỏi localStorage và redirect về login
+      localStorage.removeItem('user');
+      
+      // Chỉ redirect nếu không phải đang ở trang login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      }
     } else if (error.response?.status === 403) {
       toast.error('Bạn không có quyền truy cập tính năng này.');
     } else if (error.response?.status >= 500) {
@@ -40,17 +46,14 @@ API.interceptors.response.use(
     } else {
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
     }
+    
     return Promise.reject(error);
   }
 );
 
-// Request interceptor để thêm token nếu có
+// Request interceptor - không cần thêm token vì đã dùng cookie
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },

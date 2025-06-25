@@ -38,7 +38,7 @@ const loginUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, addresses } = req.body;
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -46,11 +46,23 @@ const registerUser = asyncHandler(async (req, res) => {
         return;
     }
 
-    const user = await User.create({
+    const userData = {
         name,
         email,
         password,
-    });
+    };
+
+    // Thêm phone nếu có
+    if (phone) {
+        userData.phone = phone;
+    }
+
+    // Thêm addresses nếu có
+    if (addresses && Array.isArray(addresses) && addresses.length > 0) {
+        userData.addresses = addresses;
+    }
+
+    const user = await User.create(userData);
 
     if (user) {
         generateToken(res, user._id);
@@ -59,6 +71,8 @@ const registerUser = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            phone: user.phone,
+            addresses: user.addresses,
         });
     } else {
         res.status(400).json({ message: 'Invalid user data' });

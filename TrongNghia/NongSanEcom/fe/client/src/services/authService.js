@@ -6,7 +6,6 @@ const AUTH_ENDPOINTS = {
   REGISTER: '/api/auth/register',
   LOGOUT: '/api/auth/logout',
   PROFILE: '/api/auth/profile',
-  REFRESH: '/api/auth/refresh',
   FORGOT_PASSWORD: '/api/auth/forgot-password',
   RESET_PASSWORD: '/api/auth/reset-password',
   VERIFY_EMAIL: '/api/auth/verify-email',
@@ -32,8 +31,7 @@ export const authService = {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Xóa token khỏi localStorage
-      localStorage.removeItem('token');
+      // Xóa user khỏi localStorage (token đã được xóa bởi backend)
       localStorage.removeItem('user');
     }
   },
@@ -47,12 +45,6 @@ export const authService = {
   // Cập nhật profile
   updateProfile: async (profileData) => {
     const response = await API.put(AUTH_ENDPOINTS.PROFILE, profileData);
-    return response.data;
-  },
-
-  // Refresh token
-  refreshToken: async () => {
-    const response = await API.post(AUTH_ENDPOINTS.REFRESH);
     return response.data;
   },
 
@@ -79,18 +71,17 @@ export const authService = {
 
   // Kiểm tra trạng thái đăng nhập
   checkAuthStatus: () => {
-    const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
-    if (token && user) {
+    if (user) {
       try {
         return {
           isAuthenticated: true,
           user: JSON.parse(user),
-          token,
         };
       } catch (error) {
         console.error('Error parsing user data:', error);
+        localStorage.removeItem('user'); // Xóa data không hợp lệ
         return { isAuthenticated: false };
       }
     }
@@ -100,9 +91,6 @@ export const authService = {
 
   // Lưu thông tin đăng nhập
   saveAuthData: (data) => {
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user));
     }
@@ -110,8 +98,17 @@ export const authService = {
 
   // Xóa thông tin đăng nhập
   clearAuthData: () => {
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
+  },
+
+  // Kiểm tra token còn hợp lệ không
+  validateToken: async () => {
+    try {
+      await API.get(AUTH_ENDPOINTS.PROFILE);
+      return true;
+    } catch (error) {
+      return false;
+    }
   },
 };
 

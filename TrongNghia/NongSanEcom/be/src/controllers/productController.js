@@ -1,21 +1,12 @@
 import Product from '../models/Product.js';
 import { asyncHandler } from '../middleware/errorMiddleware.js';
-import { 
-  successResponse, 
-  createdResponse, 
-  notFoundResponse,
-  validationErrorResponse 
+import {
+  successResponse,
 } from '../utils/responseHelper.js';
-import { 
-  validateProduct, 
-  sanitizeInput 
-} from '../utils/validationHelper.js';
-import { 
-  parsePaginationParams, 
-  getPaginatedResults 
+import {
+  parsePaginationParams,
+  getPaginatedResults
 } from '../utils/paginate.js';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants/index.js';
-import { logger } from '../utils/logger.js';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
 
@@ -25,29 +16,47 @@ import Order from '../models/Order.js';
  * @access  Public
  */
 export const getProducts = asyncHandler(async (req, res) => {
-    const pageSize = 12;
-    const page = Number(req.query.pageNumber) || 1;
+  const { pageNumber, pageSize, keyword, category, sort, order, minPrice, maxPrice } = req.query;
 
-    const keyword = req.query.keyword ? {
-        name: {
-            $regex: req.query.keyword,
-            $options: 'i'
-        }
-    } : {};
-    
-    const category = req.query.category ? { category: req.query.category } : {};
+  const page = Number(pageNumber) || 1;
+  const limit = Number(pageSize) || 10;
 
-    const count = await Product.countDocuments({ ...keyword, ...category });
-    const products = await Product.find({ ...keyword, ...category })
-        .populate('category', 'name')
-        .populate('unit', 'name symbol')
-        .populate('createdBy', 'name')
-        .populate('updatedBy', 'name')
-        .limit(pageSize)
-        .skip(pageSize * (page - 1));
+  const keywordFilter = keyword
+    ? { name: { $regex: keyword, $options: 'i' } }
+    : {};
 
-    res.json({ products, page, pages: Math.ceil(count / pageSize) });
+  const categoryFilter = category ? { category } : {};
+
+  const priceFilter = {};
+  if (minPrice) priceFilter.price = { ...priceFilter.price, $gte: Number(minPrice) };
+  if (maxPrice) priceFilter.price = { ...priceFilter.price, $lte: Number(maxPrice) };
+
+  const filter = {
+    ...keywordFilter,
+    ...categoryFilter,
+    ...priceFilter,
+  };
+
+  const sortOptions = sort ? { [sort]: order === 'asc' ? 1 : -1 } : { createdAt: -1 };
+
+  const count = await Product.countDocuments(filter);
+
+  const products = await Product.find(filter)
+    .sort(sortOptions)
+    .populate('category', 'name')
+    .populate('unit', 'name symbol')
+    .populate('createdBy', 'name')
+    .populate('updatedBy', 'name')
+    .limit(limit)
+    .skip(limit * (page - 1));
+
+  res.json({
+    products,
+    totalPages: Math.ceil(count / limit),
+    totalProducts: count
+  });
 });
+
 
 /**
  * @desc    Fetch single product
@@ -55,18 +64,18 @@ export const getProducts = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getProductById = asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id)
-        .populate('reviews.user', 'name')
-        .populate('category', 'name')
-        .populate('unit', 'name symbol')
-        .populate('createdBy', 'name')
-        .populate('updatedBy', 'name');
-    if (product) {
-        res.json(product);
-    } else {
-        res.status(404);
-        throw new Error('Product not found');
-    }
+  const product = await Product.findById(req.params.id)
+    .populate('reviews.user', 'name')
+    .populate('category', 'name')
+    .populate('unit', 'name symbol')
+    .populate('createdBy', 'name')
+    .populate('updatedBy', 'name');
+  if (product) {
+    res.json(product);
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
 });
 
 /**
@@ -75,36 +84,36 @@ export const getProductById = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const createProduct = asyncHandler(async (req, res) => {
-    const {
-        name,
-        price,
-        description,
-        images,
-        countInStock,
-        category,
-        unit,
-        origin,
-        isOrganic,
-        discount
-    } = req.body;
+  const {
+    name,
+    price,
+    description,
+    images,
+    countInStock,
+    category,
+    unit,
+    origin,
+    isOrganic,
+    discount
+  } = req.body;
 
-    const product = new Product({
-        name,
-        price,
-        user: req.user._id,
-        images,
-        countInStock,
-        description,
-        category,
-        unit,
-        origin,
-        isOrganic,
-        discount,
-        createdBy: req.user._id
-    });
+  const product = new Product({
+    name,
+    price,
+    user: req.user._id,
+    images,
+    countInStock,
+    description,
+    category,
+    unit,
+    origin,
+    isOrganic,
+    discount,
+    createdBy: req.user._id
+  });
 
-    const createdProduct = await product.save();
-    res.status(201).json(createdProduct);
+  const createdProduct = await product.save();
+  res.status(201).json(createdProduct);
 });
 
 /**
@@ -113,40 +122,40 @@ export const createProduct = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const updateProduct = asyncHandler(async (req, res) => {
-    const {
-        name,
-        price,
-        description,
-        images,
-        countInStock,
-        category,
-        unit,
-        origin,
-        isOrganic,
-        discount
-    } = req.body;
+  const {
+    name,
+    price,
+    description,
+    images,
+    countInStock,
+    category,
+    unit,
+    origin,
+    isOrganic,
+    discount
+  } = req.body;
 
-    const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id);
 
-    if (product) {
-        product.name = name;
-        product.price = price;
-        product.description = description;
-        product.images = images;
-        product.countInStock = countInStock;
-        product.category = category;
-        product.unit = unit;
-        product.origin = origin;
-        product.isOrganic = isOrganic;
-        product.discount = discount;
-        product.updatedBy = req.user._id;
+  if (product) {
+    product.name = name;
+    product.price = price;
+    product.description = description;
+    product.images = images;
+    product.countInStock = countInStock;
+    product.category = category;
+    product.unit = unit;
+    product.origin = origin;
+    product.isOrganic = isOrganic;
+    product.discount = discount;
+    product.updatedBy = req.user._id;
 
-        const updatedProduct = await product.save();
-        res.json(updatedProduct);
-    } else {
-        res.status(404);
-        throw new Error('Product not found');
-    }
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
 });
 
 /**
@@ -155,14 +164,14 @@ export const updateProduct = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const deleteProduct = asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
-    if (product) {
-        await product.deleteOne();
-        res.json({ message: 'Product removed' });
-    } else {
-        res.status(404);
-        throw new Error('Product not found');
-    }
+  const product = await Product.findById(req.params.id);
+  if (product) {
+    await product.deleteOne();
+    res.json({ message: 'Product removed' });
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
 });
 
 /**
@@ -171,33 +180,33 @@ export const deleteProduct = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const createProductReview = asyncHandler(async (req, res) => {
-    const { rating, comment } = req.body;
-    const product = await Product.findById(req.params.id);
+  const { rating, comment } = req.body;
+  const product = await Product.findById(req.params.id);
 
-    if (product) {
-        const alreadyReviewed = product.reviews.find(r => r.user.toString() === req.user._id.toString());
-        if (alreadyReviewed) {
-            res.status(400);
-            throw new Error('Product already reviewed');
-        }
-
-        const review = {
-            name: req.user.name,
-            rating: Number(rating),
-            comment,
-            user: req.user._id
-        };
-
-        product.reviews.push(review);
-        product.numReviews = product.reviews.length;
-        product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
-
-        await product.save();
-        res.status(201).json({ message: 'Review added' });
-    } else {
-        res.status(404);
-        throw new Error('Product not found');
+  if (product) {
+    const alreadyReviewed = product.reviews.find(r => r.user.toString() === req.user._id.toString());
+    if (alreadyReviewed) {
+      res.status(400);
+      throw new Error('Product already reviewed');
     }
+
+    const review = {
+      name: req.user.name,
+      rating: Number(rating),
+      comment,
+      user: req.user._id
+    };
+
+    product.reviews.push(review);
+    product.numReviews = product.reviews.length;
+    product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+    await product.save();
+    res.status(201).json({ message: 'Review added' });
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
 });
 
 /**
@@ -247,10 +256,10 @@ export const getProductCategories = asyncHandler(async (req, res) => {
 export const getProductsByCategory = asyncHandler(async (req, res) => {
   const { category } = req.params;
   const paginationParams = parsePaginationParams(req.query);
-  
+
   const filter = { category: { $regex: category, $options: 'i' } };
   const result = await getPaginatedResults(Product, filter, paginationParams, { createdAt: -1 });
-  
+
   return successResponse(res, {
     products: result.data,
     pagination: result.pagination,
@@ -270,15 +279,15 @@ export const getProductsForAdmin = asyncHandler(async (req, res) => {
 
   // Build filter
   const filter = {};
-  
+
   if (req.query.search) {
     filter.name = { $regex: req.query.search, $options: 'i' };
   }
-  
+
   if (req.query.category) {
     filter.category = req.query.category;
   }
-  
+
   if (req.query.status) {
     if (req.query.status === 'active') {
       filter.countInStock = { $gt: 0 };

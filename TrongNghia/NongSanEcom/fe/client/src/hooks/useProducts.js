@@ -14,27 +14,34 @@ export const useProducts = (initialParams = {}) => {
   });
   const [params, setParams] = useState(initialParams);
 
-  // Fetch products
-  const fetchProducts = useCallback(async () => {
+  // Fetch products with custom params
+  const fetchProducts = useCallback(async (customParams = {}) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await productService.getProducts({
+      const requestParams = {
         ...params,
-        page: pagination.page,
-        limit: pagination.limit,
-      });
+        ...customParams,
+        pageNumber: customParams.pageNumber || pagination.page,
+        pageSize: customParams.pageSize || pagination.limit,
+      };
+      
+      const response = await productService.getProducts(requestParams);
       
       const productsList = Array.isArray(response) ? response : response.products;
       const paginationData = response.pagination || response;
       
       setProducts(productsList || []);
-      setPagination(prev => ({
-        ...prev,
-        totalPages: paginationData.totalPages || 1,
-        total: paginationData.total || 0,
-      }));
+      
+      // Only update pagination if not using custom params for home page
+      if (!customParams.pageNumber && !customParams.pageSize) {
+        setPagination(prev => ({
+          ...prev,
+          totalPages: paginationData.totalPages || 1,
+          total: paginationData.total || 0,
+        }));
+      }
     } catch (err) {
       setError(err.message || 'Không thể tải sản phẩm');
       toast.error('Không thể tải sản phẩm');
@@ -55,6 +62,23 @@ export const useProducts = (initialParams = {}) => {
     } catch (err) {
       setError(err.message || 'Không thể tải sản phẩm nổi bật');
       toast.error('Không thể tải sản phẩm nổi bật');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch latest products
+  const fetchLatestProducts = useCallback(async (limit = 8) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await productService.getLatestProducts(limit);
+      const productsList = Array.isArray(response) ? response : response.products;
+      setProducts(productsList || []);
+    } catch (err) {
+      setError(err.message || 'Không thể tải sản phẩm mới nhất');
+      toast.error('Không thể tải sản phẩm mới nhất');
     } finally {
       setLoading(false);
     }
@@ -130,10 +154,13 @@ export const useProducts = (initialParams = {}) => {
     setPagination(prev => ({ ...prev, page: 1 }));
   }, [initialParams]);
 
-  // Auto fetch when params or pagination changes
+  // Auto fetch when params or pagination changes (only for normal pagination)
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    // Only auto-fetch if no custom params are being used
+    if (Object.keys(params).length === 0) {
+      fetchProducts();
+    }
+  }, [fetchProducts, params]);
 
   return {
     products,
@@ -143,6 +170,7 @@ export const useProducts = (initialParams = {}) => {
     params,
     fetchProducts,
     fetchFeaturedProducts,
+    fetchLatestProducts,
     fetchProductsByCategory,
     searchProducts,
     getProductById,

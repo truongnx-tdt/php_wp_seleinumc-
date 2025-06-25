@@ -15,18 +15,18 @@ export const productService = {
   getProducts: async (params = {}) => {
     const queryParams = new URLSearchParams();
     
-    // Thêm các tham số vào query
-    if (params.page) queryParams.append('pageNumber', params.page);
-    if (params.limit) queryParams.append('pageSize', params.limit);
+    // Thêm các tham số vào query - sửa mapping cho đúng với backend
+    if (params.pageNumber) queryParams.append('pageNumber', params.pageNumber);
+    if (params.pageSize) queryParams.append('pageSize', params.pageSize);
     if (params.keyword) queryParams.append('keyword', params.keyword);
     if (params.category) queryParams.append('category', params.category);
     if (params.sort) queryParams.append('sort', params.sort);
     if (params.order) queryParams.append('order', params.order);
     if (params.minPrice) queryParams.append('minPrice', params.minPrice);
     if (params.maxPrice) queryParams.append('maxPrice', params.maxPrice);
-    if (params.isOrganic !== undefined) queryParams.append('isOrganic', params.isOrganic);
     
     const url = `${PRODUCT_ENDPOINTS.LIST}?${queryParams.toString()}`;
+    console.log('API URL:', url);
     const response = await API.get(url);
     return response.data;
   },
@@ -47,7 +47,7 @@ export const productService = {
 
   // Lấy sản phẩm nổi bật
   getFeaturedProducts: async (limit = 8) => {
-    const response = await API.get(`${PRODUCT_ENDPOINTS.FEATURED}&pageSize=${limit}`);
+    const response = await API.get(`${PRODUCT_ENDPOINTS.LIST}?featured=true&pageSize=${limit}`);
     return response.data;
   },
 

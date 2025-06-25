@@ -37,11 +37,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // if (!origin || allowedOrigins.includes(origin)) {
+    callback(null, true);
+    // } else {
+    //   callback(new Error('Not allowed by CORS'));
+    // }
   },
   credentials: true, // Allow cookies, authorization headers, etc.
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

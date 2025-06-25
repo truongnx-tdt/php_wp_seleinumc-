@@ -1,6 +1,6 @@
 export const NAV_LINKS = [
   { path: '/products', label: 'Sản phẩm' },
-  { path: '/categories', label: 'Danh mục' },
+  // { path: '/categories', label: 'Danh mục' },
   { path: '/about', label: 'Giới thiệu' },
 ]
 

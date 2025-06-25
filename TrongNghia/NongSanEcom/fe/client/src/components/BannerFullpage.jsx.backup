@@ -343,7 +343,7 @@ const BannerFullpage = ({ position = 'home', category = null, children }) => {
               <motion.div
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black bg-opacity-50 z-3 flex items-center justify-center"
+                className="absolute inset-0 bg-black opacity-50 z-3 flex items-center justify-center"
               >
                 <div className="text-white text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
@@ -353,7 +353,7 @@ const BannerFullpage = ({ position = 'home', category = null, children }) => {
             )}
             
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-40 z-2" />
+            <div className="absolute inset-0 bg-black opacity-40 z-2" />
             
             {/* Content */}
             <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
@@ -419,7 +419,7 @@ const BannerFullpage = ({ position = 'home', category = null, children }) => {
                     className={`w-4 h-4 rounded-full transition-all duration-300 ${
                       idx === current 
                         ? 'bg-white scale-125' 
-                        : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                        : 'bg-white opacity-50 hover:opacity-75'
                     }`}
                     aria-label={`Chuyển đến banner ${idx + 1}`}
                   />
@@ -442,7 +442,7 @@ const BannerFullpage = ({ position = 'home', category = null, children }) => {
             </motion.div>
 
             {/* Progress Bar */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-black bg-opacity-20 z-20">
+            <div className="absolute top-0 left-0 w-full h-1 bg-black opacity-20 z-20">
               <motion.div
                 className="h-full bg-white"
                 initial={{ width: 0 }}

@@ -21,7 +21,6 @@ const Login = () => {
     
     try {
       const data = await loginUser(form)
-      localStorage.setItem('token', data.token)
       login(data)
       toast.success('Đăng nhập thành công!')
       navigate(ROUTES.HOME)
@@ -60,7 +59,7 @@ const Login = () => {
             name="password"
             type="password"
             label="Mật khẩu"
-            placeholder="Nhập mật khẩu"
+            placeholder="Nhập mật khẩu của bạn"
             value={form.password}
             onChange={handleChange}
             required

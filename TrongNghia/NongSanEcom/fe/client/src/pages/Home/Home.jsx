@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { FaShoppingCart, FaStar, FaLeaf, FaTruck, FaShieldAlt, FaHeart } from 'react-icons/fa';
 import { MdLocalOffer, MdCategory } from 'react-icons/md';
 import { PageSpinner } from '../../components/Spinner';
-import ProductCard from '../../components/ProductCard';
+import ProductList from '../../components/ProductList';
 import BannerFullpage from '../../components/BannerFullpage';
 import PageTitle from '../../components/PageTitle';
 import { useProducts } from '../../hooks/useProducts';
@@ -18,7 +18,7 @@ const Home = () => {
     products, 
     loading: productsLoading, 
     error: productsError,
-    fetchFeaturedProducts 
+    fetchProducts 
   } = useProducts();
   
   const { 
@@ -29,10 +29,15 @@ const Home = () => {
   } = useCategories();
 
   useEffect(() => {
-    // Fetch featured products và categories khi component mount
-    fetchFeaturedProducts(8);
+    // Fetch latest 8 products và categories khi component mount
+    fetchProducts({
+      pageNumber: 1,
+      pageSize: 8,
+      sort: 'createdAt',
+      order: 'desc'
+    });
     fetchCategoriesWithProducts();
-  }, [fetchFeaturedProducts, fetchCategoriesWithProducts]);
+  }, [fetchProducts, fetchCategoriesWithProducts]);
 
   const features = [
     {
@@ -208,7 +213,7 @@ const Home = () => {
             </motion.div>
           )}
 
-          {/* Featured Products Section */}
+          {/* Latest Products Section */}
           <motion.div 
             className="py-16 bg-white"
             initial="hidden"
@@ -219,30 +224,23 @@ const Home = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <motion.div className="text-center mb-12" variants={itemVariants}>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  Sản phẩm nổi bật
+                  Sản phẩm mới nhất
                 </h2>
                 <p className="text-lg text-gray-600">
-                  Những sản phẩm được yêu thích nhất
+                  Những sản phẩm nông sản tươi ngon vừa được thêm vào
                 </p>
               </motion.div>
 
-              {productsError ? (
-                <motion.div className="text-center text-red-500 text-lg" variants={itemVariants}>
-                  {productsError}
-                </motion.div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {products.map((product, index) => (
-                    <motion.div
-                      key={product._id}
-                      variants={itemVariants}
-                      whileHover={{ y: -5 }}
-                    >
-                      <ProductCard product={product} />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+              <motion.div variants={itemVariants}>
+                <ProductList 
+                  products={products}
+                  loading={productsLoading}
+                  error={productsError}
+                  layout="grid"
+                  showWishlist={true}
+                  showAddToCart={true}
+                />
+              </motion.div>
 
               {products.length > 0 && (
                 <motion.div className="text-center mt-12" variants={itemVariants}>

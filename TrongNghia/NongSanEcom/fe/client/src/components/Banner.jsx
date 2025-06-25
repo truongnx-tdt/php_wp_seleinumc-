@@ -51,7 +51,7 @@ const Banner = ({ position = 'home', category = null, className = '' }) => {
             className="w-full h-full object-cover"
           />
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+          <div className="absolute inset-0 bg-black opacity-30"></div>
           {/* Content */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white px-6">
@@ -105,7 +105,7 @@ const Banner = ({ position = 'home', category = null, className = '' }) => {
           alt={banner.title}
           className="w-full h-full object-cover transition-all duration-700"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+        <div className="absolute inset-0 bg-black opacity-30"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white px-6">
             {banner.title && (
@@ -136,14 +136,14 @@ const Banner = ({ position = 'home', category = null, className = '' }) => {
         {/* Carousel controls */}
         <button
           onClick={handlePrev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-30 hover:bg-opacity-60 text-white rounded-full p-2 z-10"
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black opacity-30 hover:opacity-60 text-white rounded-full p-2 z-10"
           aria-label="Trước"
         >
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" /></svg>
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-30 hover:bg-opacity-60 text-white rounded-full p-2 z-10"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black opacity-30 hover:opacity-60 text-white rounded-full p-2 z-10"
           aria-label="Sau"
         >
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg>
@@ -154,7 +154,7 @@ const Banner = ({ position = 'home', category = null, className = '' }) => {
             <button
               key={idx}
               onClick={() => setCurrent(idx)}
-              className={`w-3 h-3 rounded-full ${idx === current ? 'bg-white' : 'bg-white bg-opacity-50'} transition-all`}
+              className={`w-3 h-3 rounded-full ${idx === current ? 'bg-white' : 'bg-white opacity-50'} transition-all`}
               aria-label={`Chuyển đến banner ${idx + 1}`}
             />
           ))}
@@ -202,7 +202,7 @@ const BannerCarousel = ({ position = 'home', category = null, className = '' }) 
           {banners.map((_, index) => (
             <button
               key={index}
-              className="w-3 h-3 bg-white bg-opacity-50 rounded-full hover:bg-opacity-100 transition-opacity"
+              className="w-3 h-3 bg-white opacity-50 rounded-full hover:opacity-100 transition-opacity"
               onClick={() => {
                 // Implement carousel navigation
               }}

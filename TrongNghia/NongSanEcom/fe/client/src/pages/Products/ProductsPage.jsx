@@ -1,202 +1,341 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import API from '../../utils/axiosInstance'; // giả sử bạn có axios instance
-
-const categories = ['Rau củ', 'Trái cây', 'Ngũ cốc', 'Gia vị'];
-const suppliers = ['Hợp tác xã 1', 'Hợp tác xã 2', 'Nhà cung cấp A', 'Nhà cung cấp B'];
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { productService } from '../../services/productService';
+import { categoryService } from '../../services/categoryService';
+import ProductList from '../../components/ProductList';
 
 const ProductsPage = () => {
-    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
+    // State cho sản phẩm
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // State cho danh mục
+    const [categories, setCategories] = useState([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
+
     // Bộ lọc
     const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
+    const [debouncedKeyword, setDebouncedKeyword] = useState(searchParams.get('keyword') || '');
     const [category, setCategory] = useState(searchParams.get('category') || '');
-    const [supplier, setSupplier] = useState(searchParams.get('supplier') || '');
+    const [sortBy, setSortBy] = useState(searchParams.get('sort') || '');
     const [priceRange, setPriceRange] = useState(searchParams.get('price') || '');
 
     // Pagination
     const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
 
-    const limit = 9; // số sản phẩm trên mỗi trang
+    const limit = 8; // số sản phẩm trên mỗi trang
 
+    // Debounce cho keyword search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedKeyword(keyword);
+        }, 500); // 500ms delay
+
+        return () => clearTimeout(timer);
+    }, [keyword]);
+
+    // Lấy danh mục từ API
+    useEffect(() => {
+        const fetchCategories = async () => {
+            setCategoriesLoading(true);
+            try {
+                const response = await categoryService.getCategories({ limit: 50 });
+                setCategories(response.categories || response.data || []);
+            } catch (err) {
+                console.error('Lỗi khi tải danh mục:', err);
+            } finally {
+                setCategoriesLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    // Lấy sản phẩm từ API
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
             setError('');
             try {
-                // Giả lập call API filter, bạn thay API thực tế
-                // Gửi params query string lọc theo keyword, category, supplier, price, page
+                // Xử lý price range
+                let minPrice, maxPrice;
+                if (priceRange) {
+                    const [min, max] = priceRange.split('-');
+                    minPrice = min;
+                    maxPrice = max || '';
+                }
+
+                // Xử lý sort
+                let sort, order;
+                if (sortBy) {
+                    switch (sortBy) {
+                        case 'price-asc':
+                            sort = 'price';
+                            order = 'asc';
+                            break;
+                        case 'price-desc':
+                            sort = 'price';
+                            order = 'desc';
+                            break;
+                        case 'name-asc':
+                            sort = 'name';
+                            order = 'asc';
+                            break;
+                        case 'name-desc':
+                            sort = 'name';
+                            order = 'desc';
+                            break;
+                        case 'newest':
+                            sort = 'createdAt';
+                            order = 'desc';
+                            break;
+                        case 'oldest':
+                            sort = 'createdAt';
+                            order = 'asc';
+                            break;
+                        default:
+                            sort = '';
+                            order = '';
+                    }
+                }
+
                 const params = {
-                    keyword,
-                    category,
-                    supplier,
-                    priceRange,
-                    page,
-                    limit,
+                    pageNumber: page,
+                    pageSize: limit,
+                    keyword: debouncedKeyword.trim(),
+                    category: category,
+                    sort,
+                    order,
+                    minPrice,
+                    maxPrice,
                 };
 
-                const { data } = await API.get('/api/products', { params });
-                const products = data.products ? data.products : [];
-                setProducts(products);
-                setTotalPages(data.totalPages || 1);
+                console.log('API Params:', params);
+                const response = await productService.getProducts(params);
+                console.log('API Response:', response);
+                
+                // Xử lý response theo format API
+                const productsData = response.products || response.data || [];
+                const totalPagesData = response.totalPages || response.pages || 1;
+                const totalProductsData = response.totalProducts || response.total || 0;
+
+                setProducts(productsData);
+                setTotalPages(totalPagesData);
+                setTotalProducts(totalProductsData);
             } catch (err) {
-                setError('Không tải được sản phẩm');
+                console.error('Lỗi khi tải sản phẩm:', err);
+                setError('Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchProducts();
-        // Đồng bộ query params trên URL
+
+        // Cập nhật URL params
         const paramsToSet = {};
-        if (keyword) paramsToSet.keyword = keyword;
+        if (debouncedKeyword.trim()) paramsToSet.keyword = debouncedKeyword.trim();
         if (category) paramsToSet.category = category;
-        if (supplier) paramsToSet.supplier = supplier;
+        if (sortBy) paramsToSet.sort = sortBy;
         if (priceRange) paramsToSet.price = priceRange;
-        if (page) paramsToSet.page = page;
+        if (page > 1) paramsToSet.page = page;
 
         setSearchParams(paramsToSet);
-    }, [keyword, category, supplier, priceRange, page, setSearchParams]);
+    }, [debouncedKeyword, category, sortBy, priceRange, page, setSearchParams]);
 
-    // Xử lý đổi filter reset page về 1
-    const onFilterChange = (setter) => (e) => {
+    // Xử lý thay đổi filter
+    const handleFilterChange = (setter) => (e) => {
         setter(e.target.value);
+        setPage(1);
+    };
+
+    // Reset tất cả filter
+    const resetFilters = () => {
+        setKeyword('');
+        setDebouncedKeyword('');
+        setCategory('');
+        setSortBy('');
+        setPriceRange('');
         setPage(1);
     };
 
     return (
         <div className="bg-gray-50 min-h-screen py-12 px-4">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-4xl font-bold text-green-700 mb-8">Sản phẩm nông sản</h1>
-
-                {/* Filter panel */}
-                <div className="flex flex-col md:flex-row md:space-x-6 mb-10">
-                    {/* Tìm kiếm */}
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm sản phẩm..."
-                        className="flex-1 mb-4 md:mb-0 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
-                        value={keyword}
-                        onChange={onFilterChange(setKeyword)}
-                    />
-
-                    {/* Danh mục */}
-                    <select
-                        className="border border-gray-300 rounded px-4 py-2 mb-4 md:mb-0"
-                        value={category}
-                        onChange={onFilterChange(setCategory)}
-                    >
-                        <option value="">Tất cả danh mục</option>
-                        {categories.map((cat) => (
-                            <option key={cat} value={cat}>
-                                {cat}
-                            </option>
-                        ))}
-                    </select>
-
-                    {/* Nhà cung cấp */}
-                    <select
-                        className="border border-gray-300 rounded px-4 py-2 mb-4 md:mb-0"
-                        value={supplier}
-                        onChange={onFilterChange(setSupplier)}
-                    >
-                        <option value="">Tất cả nhà cung cấp</option>
-                        {suppliers.map((sup) => (
-                            <option key={sup} value={sup}>
-                                {sup}
-                            </option>
-                        ))}
-                    </select>
-
-                    {/* Giá */}
-                    <select
-                        className="border border-gray-300 rounded px-4 py-2"
-                        value={priceRange}
-                        onChange={onFilterChange(setPriceRange)}
-                    >
-                        <option value="">Tất cả giá</option>
-                        <option value="0-10000">Dưới 10,000₫</option>
-                        <option value="10000-50000">10,000₫ - 50,000₫</option>
-                        <option value="50000-100000">50,000₫ - 100,000₫</option>
-                        <option value="100000-">Trên 100,000₫</option>
-                    </select>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                    <h1 className="text-4xl font-bold text-green-700 mb-4 md:mb-0">
+                        Sản phẩm nông sản
+                    </h1>
+                    <div className="text-gray-600">
+                        Tìm thấy {totalProducts} sản phẩm
+                        {totalPages > 1 && ` (Trang ${page}/${totalPages})`}
+                    </div>
                 </div>
 
-                {/* Product grid */}
-                {loading ? (
-                    <p className="text-center text-gray-600">Đang tải sản phẩm...</p>
-                ) : error ? (
-                    <p className="text-center text-red-500">{error}</p>
-                ) : products.length === 0 ? (
-                    <p className="text-center text-gray-500">Không tìm thấy sản phẩm nào.</p>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                        {products.map((p) => (
-                            <div
-                                key={p._id}
-                                className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col"
+                {/* Filter panel */}
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        {/* Tìm kiếm */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tìm kiếm
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Tên sản phẩm..."
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                                value={keyword}
+                                onChange={handleFilterChange(setKeyword)}
+                            />
+                            {keyword !== debouncedKeyword && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Đang tìm kiếm...
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Danh mục */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Danh mục
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                                value={category}
+                                onChange={handleFilterChange(setCategory)}
+                                disabled={categoriesLoading}
                             >
-                                <img
-                                    src={p.images?.[0] || 'https://source.unsplash.com/400x250/?vegetable,fruit'}
-                                    alt={p.name}
-                                    className="w-full h-48 object-cover"
-                                />
-                                <div className="p-4 flex-1 flex flex-col">
-                                    <h3 className="text-lg font-semibold text-green-700">{p.name}</h3>
-                                    <p className="text-gray-600 mt-1 text-sm">{p.category}</p>
-                                    <p className="mt-2 font-semibold text-gray-900">
-                                        {p.price.toLocaleString()}₫ / {p.unit}
-                                    </p>
-                                    {p.discount > 0 && (
-                                        <p className="text-sm text-red-600 mt-1">
-                                            Giảm giá: {p.discount}%
-                                        </p>
-                                    )}
-                                    <button
-                                        onClick={() => navigate(`/products/${p._id}`)}
-                                        className="mt-auto bg-green-600 hover:bg-green-700 text-white py-2 rounded mt-4"
-                                    >
-                                        Xem chi tiết
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                                <option value="">Tất cả danh mục</option>
+                                {categories.map((cat) => (
+                                    <option key={cat._id} value={cat._id}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Sắp xếp */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Sắp xếp
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                                value={sortBy}
+                                onChange={handleFilterChange(setSortBy)}
+                            >
+                                <option value="">Mặc định</option>
+                                <option value="name-asc">Tên A-Z</option>
+                                <option value="name-desc">Tên Z-A</option>
+                                <option value="price-asc">Giá tăng dần</option>
+                                <option value="price-desc">Giá giảm dần</option>
+                                <option value="newest">Mới nhất</option>
+                                <option value="oldest">Cũ nhất</option>
+                            </select>
+                        </div>
+
+                        {/* Khoảng giá */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Khoảng giá
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                                value={priceRange}
+                                onChange={handleFilterChange(setPriceRange)}
+                            >
+                                <option value="">Tất cả giá</option>
+                                <option value="0-10000">Dưới 10,000₫</option>
+                                <option value="10000-50000">10,000₫ - 50,000₫</option>
+                                <option value="50000-100000">50,000₫ - 100,000₫</option>
+                                <option value="100000-200000">100,000₫ - 200,000₫</option>
+                                <option value="200000-">Trên 200,000₫</option>
+                            </select>
+                        </div>
                     </div>
-                )}
+
+                    <div className="flex items-center justify-between">
+                        {/* Reset button */}
+                        <button
+                            onClick={resetFilters}
+                            className="text-sm text-gray-500 hover:text-gray-700 underline"
+                        >
+                            Xóa bộ lọc
+                        </button>
+
+                        {/* Products per page info */}
+                        <div className="text-sm text-gray-500">
+                            Hiển thị {products.length} sản phẩm / trang
+                        </div>
+                    </div>
+                </div>
+
+                {/* Product List */}
+                <ProductList 
+                    products={products}
+                    loading={loading}
+                    error={error}
+                    layout="grid"
+                    showWishlist={false}
+                    showAddToCart={true}
+                />
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex justify-center mt-10 space-x-3">
+                    <div className="flex justify-center mt-10 space-x-2">
                         <button
                             disabled={page === 1}
                             onClick={() => setPage(page - 1)}
-                            className={`px-4 py-2 rounded border ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600 hover:text-white'}`}
+                            className={`px-4 py-2 rounded-lg border transition-colors ${page === 1
+                                ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                                : 'hover:bg-green-600 hover:text-white hover:border-green-600'
+                            }`}
                         >
                             &lt; Trước
                         </button>
+                        
+                        {/* Page numbers */}
                         {[...Array(totalPages)].map((_, idx) => {
                             const p = idx + 1;
-                            return (
-                                <button
-                                    key={p}
-                                    onClick={() => setPage(p)}
-                                    className={`px-4 py-2 rounded border ${p === page ? 'bg-green-600 text-white' : 'hover:bg-green-600 hover:text-white'
-                                        }`}
-                                >
-                                    {p}
-                                </button>
-                            );
+                            // Chỉ hiển thị một số trang xung quanh trang hiện tại
+                            if (
+                                p === 1 || 
+                                p === totalPages || 
+                                (p >= page - 1 && p <= page + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        className={`px-4 py-2 rounded-lg border transition-colors ${p === page
+                                                ? 'bg-green-600 text-white border-green-600'
+                                                : 'hover:bg-green-600 hover:text-white hover:border-green-600'
+                                            }`}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            } else if (
+                                p === page - 2 || 
+                                p === page + 2
+                            ) {
+                                return <span key={p} className="px-2 py-2">...</span>;
+                            }
+                            return null;
                         })}
+                        
                         <button
                             disabled={page === totalPages}
                             onClick={() => setPage(page + 1)}
-                            className={`px-4 py-2 rounded border ${page === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600 hover:text-white'}`}
+                            className={`px-4 py-2 rounded-lg border transition-colors ${page === totalPages
+                                ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                                : 'hover:bg-green-600 hover:text-white hover:border-green-600'
+                            }`}
                         >
                             Tiếp &gt;
                         </button>

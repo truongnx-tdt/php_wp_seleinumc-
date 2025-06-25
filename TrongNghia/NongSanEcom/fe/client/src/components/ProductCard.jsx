@@ -13,6 +13,21 @@ const ProductCard = ({ product, showWishlist = true, showAddToCart = true }) => 
     return new Intl.NumberFormat('vi-VN').format(price);
   };
 
+  // Helper function để lấy tên category
+  const getCategoryName = (category) => {
+    if (typeof category === 'string') return category;
+    if (category && typeof category === 'object' && category.name) return category.name;
+    return 'Không phân loại';
+  };
+
+  // Helper function để lấy tên unit
+  const getUnitName = (unit) => {
+    if (typeof unit === 'string') return unit;
+    if (unit && typeof unit === 'object' && unit.name) return unit.name;
+    if (unit && typeof unit === 'object' && unit.symbol) return unit.symbol;
+    return 'kg';
+  };
+
   const handleAddToCart = (e) => {
     e.stopPropagation();
     // TODO: Implement add to cart functionality
@@ -73,6 +88,11 @@ const ProductCard = ({ product, showWishlist = true, showAddToCart = true }) => 
           {product.name}
         </h3>
         
+        {/* Category */}
+        <p className="text-gray-600 text-sm mb-2">
+          {getCategoryName(product.category)}
+        </p>
+        
         {/* Rating */}
         {product.rating > 0 && (
           <div className="flex items-center mb-2">
@@ -104,7 +124,7 @@ const ProductCard = ({ product, showWishlist = true, showAddToCart = true }) => 
               {formatPrice(product.price)}₫
             </p>
           )}
-          <p className="text-sm text-gray-500">/ {product.unit?.name || 'kg'}</p>
+          <p className="text-sm text-gray-500">/ {getUnitName(product.unit)}</p>
         </div>
 
         {/* Stock Status */}
