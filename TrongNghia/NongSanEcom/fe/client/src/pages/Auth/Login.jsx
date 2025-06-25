@@ -7,6 +7,7 @@ import FormInput from '../../components/ui/FormInput'
 import Button from '../../components/ui/Button'
 import AuthLayout from '../../components/ui/AuthLayout'
 import Spinner from '../../components/Spinner'
+import PageTitle from '../../components/PageTitle'
 import { ROUTES } from '../../constants/navigation'
 
 const Login = () => {
@@ -32,40 +33,47 @@ const Login = () => {
   }
 
   return (
-    <AuthLayout 
-      title="Đăng nhập"
-      footerText="Chưa có tài khoản?"
-      footerLink={ROUTES.REGISTER}
-      footerLinkText="Đăng ký"
-    >
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <FormInput
-          name="email"
-          type="email"
-          label="Email"
-          placeholder="Nhập email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-        
-        <FormInput
-          name="password"
-          type="password"
-          label="Mật khẩu"
-          placeholder="Nhập mật khẩu"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
-        
-        {loading && <Spinner />}
-        
-        <Button type="submit" loading={loading}>
-          Đăng nhập
-        </Button>
-      </form>
-    </AuthLayout>
+    <>
+      <PageTitle 
+        title="Đăng nhập" 
+        description="Đăng nhập vào tài khoản Nông Sản Ecom để mua sắm nông sản tươi ngon, chất lượng cao."
+      />
+      
+      <AuthLayout 
+        title="Đăng nhập"
+        footerText="Chưa có tài khoản?"
+        footerLink={ROUTES.REGISTER}
+        footerLinkText="Đăng ký"
+      >
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <FormInput
+            name="email"
+            type="email"
+            label="Email"
+            placeholder="Nhập email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+          
+          <FormInput
+            name="password"
+            type="password"
+            label="Mật khẩu"
+            placeholder="Nhập mật khẩu"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+          
+          {loading && <Spinner />}
+          
+          <Button type="submit" loading={loading}>
+            Đăng nhập
+          </Button>
+        </form>
+      </AuthLayout>
+    </>
   )
 }
 

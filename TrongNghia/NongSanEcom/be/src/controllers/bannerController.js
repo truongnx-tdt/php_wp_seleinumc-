@@ -1,5 +1,13 @@
 import Banner from '../models/Banner.js';
 import { asyncHandler } from '../middleware/errorMiddleware.js';
+import mongoose from 'mongoose';
+
+// Helper function để validate ObjectId
+const isValidObjectId = (id) => {
+    if (!id || typeof id !== 'string') return false;
+    return mongoose.Types.ObjectId.isValid(id);
+};
+
 /**
  * @desc    Fetch all banners with filtering, pagination, and sorting
  * @route   GET /api/banners
@@ -132,7 +140,8 @@ export const createBanner = asyncHandler(async (req, res) => {
         textColor
     } = req.body;
 
-    const banner = new Banner({
+    // Xử lý category và product - chỉ set khi có giá trị hợp lệ
+    const bannerData = {
         title,
         subtitle,
         description,
@@ -140,8 +149,6 @@ export const createBanner = asyncHandler(async (req, res) => {
         link,
         linkText,
         position,
-        category,
-        product,
         isActive,
         startDate,
         endDate,
@@ -149,7 +156,27 @@ export const createBanner = asyncHandler(async (req, res) => {
         backgroundColor,
         textColor,
         createdBy: req.user._id
-    });
+    };
+
+    // Chỉ thêm category nếu có giá trị và không phải chuỗi rỗng
+    if (category && category.trim() !== '') {
+        if (!isValidObjectId(category)) {
+            res.status(400);
+            throw new Error('Invalid category ID format');
+        }
+        bannerData.category = category;
+    }
+
+    // Chỉ thêm product nếu có giá trị và không phải chuỗi rỗng
+    if (product && product.trim() !== '') {
+        if (!isValidObjectId(product)) {
+            res.status(400);
+            throw new Error('Invalid product ID format');
+        }
+        bannerData.product = product;
+    }
+
+    const banner = new Banner(bannerData);
 
     const createdBanner = await banner.save();
     
@@ -197,8 +224,33 @@ export const updateBanner = asyncHandler(async (req, res) => {
         banner.link = link !== undefined ? link : banner.link;
         banner.linkText = linkText !== undefined ? linkText : banner.linkText;
         banner.position = position || banner.position;
-        banner.category = category || banner.category;
-        banner.product = product || banner.product;
+        
+        // Xử lý category - chỉ update khi có giá trị hợp lệ
+        if (category !== undefined) {
+            if (category && category.trim() !== '') {
+                if (!isValidObjectId(category)) {
+                    res.status(400);
+                    throw new Error('Invalid category ID format');
+                }
+                banner.category = category;
+            } else {
+                banner.category = undefined; // Xóa reference nếu truyền chuỗi rỗng
+            }
+        }
+        
+        // Xử lý product - chỉ update khi có giá trị hợp lệ
+        if (product !== undefined) {
+            if (product && product.trim() !== '') {
+                if (!isValidObjectId(product)) {
+                    res.status(400);
+                    throw new Error('Invalid product ID format');
+                }
+                banner.product = product;
+            } else {
+                banner.product = undefined; // Xóa reference nếu truyền chuỗi rỗng
+            }
+        }
+        
         banner.isActive = isActive !== undefined ? isActive : banner.isActive;
         banner.startDate = startDate !== undefined ? startDate : banner.startDate;
         banner.endDate = endDate !== undefined ? endDate : banner.endDate;
