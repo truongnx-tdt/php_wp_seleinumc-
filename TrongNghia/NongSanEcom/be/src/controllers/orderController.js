@@ -200,7 +200,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
     { createdAt: -1 }
   );
 
-  return successResponse(res, {
+  res.status(200).json({
     orders: result.data,
     pagination: result.pagination,
   });

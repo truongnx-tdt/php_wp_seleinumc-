@@ -1,8 +1,22 @@
 // src/pages/AboutPage.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PageTitle from '../../components/PageTitle';
+import bannerService from '../../services/bannerService';
 
 const AboutPage = () => {
+  const [bannerImg, setBannerImg] = useState(null);
+
+  useEffect(() => {
+    // Lấy banner công khai vị trí home
+    bannerService.getPublicBanners('home')
+      .then(data => {
+        if (data && data.length > 0) {
+          setBannerImg(data[0].image);
+        }
+      })
+      .catch(() => setBannerImg(null));
+  }, []);
+
   return (
     <>
       <PageTitle 
@@ -21,7 +35,7 @@ const AboutPage = () => {
           </p>
           <div className="mt-10">
             <img
-              src="https://source.unsplash.com/800x400/?organic,farm,vegetable"
+              src={bannerImg || 'https://source.unsplash.com/800x400/?organic,farm,vegetable'}
               alt="Nông sản"
               className="rounded-lg shadow-md mx-auto"
             />

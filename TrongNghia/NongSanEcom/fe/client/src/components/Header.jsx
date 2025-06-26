@@ -4,7 +4,6 @@ import { useUser } from '../UserContext';
 import { NAV_LINKS, AUTH_LINKS, ROUTES } from '../constants/navigation';
 import { FaSearch, FaShoppingCart, FaUser, FaBars, FaTimes, FaHeart } from 'react-icons/fa';
 import authService from '../services/authService';
-import cartService from '../services/cartService';
 import { toast } from 'react-toastify';
 
 const NavigationLink = ({ to, children, className = '', onClick }) => (
@@ -175,8 +174,8 @@ const Header = () => {
         </NavigationLink>
       ))}
 
-      {!isMobile && <CartIcon cartCount={cartCount} />}
-      {!isMobile && <WishlistIcon />}
+      <CartIcon cartCount={cartCount} />
+      {/* {!isMobile && <WishlistIcon />} */}
 
       {user ? (
         isMobile ? (

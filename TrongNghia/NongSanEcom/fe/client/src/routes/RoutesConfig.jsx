@@ -13,6 +13,8 @@ import AboutPage from '../pages/About/AboutPage';
 import NotFound from '../pages/NotFound';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ProfilePage from '../pages/ProfilePage';
+import MyOrdersPage from '../pages/Orders/MyOrdersPage';
 
 const RoutesConfig = () => (
   <>
@@ -29,6 +31,8 @@ const RoutesConfig = () => (
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/orders" element={<MyOrdersPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </main>

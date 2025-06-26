@@ -224,9 +224,9 @@ const deleteUserAddress = asyncHandler(async (req, res) => {
                 res.status(400).json({ message: 'Cannot delete default address. Set another address as default first.' });
                 return;
             }
-            address.remove();
+            user.addresses = user.addresses.filter(addr => addr._id.toString() !== req.params.addressId);
             await user.save();
-            res.json({ message: 'Address removed' });
+            res.json({ addresses: user.addresses });
         } else {
             res.status(404).json({ message: 'Address not found' });
             return;
