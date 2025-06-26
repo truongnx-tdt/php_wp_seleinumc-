@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaSearch, FaFilter, FaSort } from 'react-icons/fa';
+import { FaSearch, FaFilter } from 'react-icons/fa';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
 import ProductCard from '../../components/ProductCard';
@@ -10,6 +10,7 @@ import PageTitle from '../../components/PageTitle';
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
+  const isUpdatingURL = useRef(false);
   
   // Lấy params từ URL
   const keyword = searchParams.get('keyword') || '';
@@ -17,6 +18,16 @@ const Products = () => {
   const sort = searchParams.get('sort') || 'createdAt';
   const order = searchParams.get('order') || 'desc';
   const page = parseInt(searchParams.get('page')) || 1;
+
+  // Local state for sort and order to ensure proper updates
+  const [currentSort, setCurrentSort] = useState(sort);
+  const [currentOrder, setCurrentOrder] = useState(order);
+
+  // Update local state when URL params change
+  useEffect(() => {
+    setCurrentSort(sort);
+    setCurrentOrder(order);
+  }, [sort, order]);
 
   // Sử dụng custom hooks
   const {
@@ -44,16 +55,32 @@ const Products = () => {
     fetchCategoriesWithProducts();
   }, [fetchCategoriesWithProducts]);
 
-  // Cập nhật URL khi params thay đổi
+  // Cập nhật URL khi params thay đổi (chỉ khi không phải từ reset)
   useEffect(() => {
-    const newParams = new URLSearchParams();
-    if (keyword) newParams.set('keyword', keyword);
-    if (category) newParams.set('category', category);
-    if (sort) newParams.set('sort', sort);
-    if (order) newParams.set('order', order);
-    if (page > 1) newParams.set('page', page.toString());
+    // Tránh vòng lặp vô hạn
+    if (isUpdatingURL.current) {
+      isUpdatingURL.current = false;
+      return;
+    }
     
-    setSearchParams(newParams);
+    // Chỉ cập nhật URL nếu có params thực sự
+    const hasParams = keyword || category || (sort !== 'createdAt') || (order !== 'desc') || page > 1;
+    
+    if (hasParams) {
+      const newParams = new URLSearchParams();
+      if (keyword) newParams.set('keyword', keyword);
+      if (category) newParams.set('category', category);
+      if (sort && sort !== 'createdAt') newParams.set('sort', sort);
+      if (order && order !== 'desc') newParams.set('order', order);
+      if (page > 1) newParams.set('page', page.toString());
+      
+      isUpdatingURL.current = true;
+      setSearchParams(newParams);
+    } else {
+      // Nếu không có params, xóa URL params
+      isUpdatingURL.current = true;
+      setSearchParams({});
+    }
   }, [keyword, category, sort, order, page, setSearchParams]);
 
   // Handle search
@@ -64,19 +91,72 @@ const Products = () => {
     updateParams({ keyword: searchKeyword });
   };
 
-  // Handle filter changes
+  // Handle filter changes - cập nhật cả URL và params
   const handleFilterChange = (filterType, value) => {
+    // Cập nhật URL ngay lập tức
+    isUpdatingURL.current = true;
+    const newParams = new URLSearchParams(searchParams);
+    if (value) {
+      newParams.set(filterType, value);
+    } else {
+      newParams.delete(filterType);
+    }
+    setSearchParams(newParams);
+    
+    // Cập nhật params trong hook
     updateParams({ [filterType]: value });
   };
 
   // Handle sort changes
   const handleSortChange = (newSort, newOrder) => {
+    console.log('Sort change:', { newSort, newOrder, currentSort, currentOrder });
+    setCurrentSort(newSort);
+    setCurrentOrder(newOrder);
+    
+    // Cập nhật URL ngay lập tức
+    isUpdatingURL.current = true;
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('sort', newSort);
+    newParams.set('order', newOrder);
+    setSearchParams(newParams);
+    
     updateParams({ sort: newSort, order: newOrder });
   };
 
   // Handle page change
   const handlePageChange = (newPage) => {
     changePage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle reset filters - reset tất cả state và URL
+  const handleResetFilters = () => {
+    // Reset URL params
+    isUpdatingURL.current = true;
+    setSearchParams({});
+    
+    // Reset local state
+    setCurrentSort('createdAt');
+    setCurrentOrder('desc');
+    
+    // Reset params trong hook về trạng thái mặc định
+    updateParams({
+      keyword: '',
+      category: '',
+      sort: 'createdAt',
+      order: 'desc'
+    });
+    
+    // Reset pagination về trang 1
+    changePage(1);
+    
+    // Reset form search input
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    
+    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -160,40 +240,40 @@ const Products = () => {
                     <div className="space-y-2">
                       <button
                         onClick={() => handleSortChange('createdAt', 'desc')}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                          sort === 'createdAt' && order === 'desc'
-                            ? 'bg-green-100 text-green-800'
-                            : 'hover:bg-gray-100'
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                          currentSort === 'createdAt' && currentOrder === 'desc'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : 'hover:bg-gray-100 border border-transparent'
                         }`}
                       >
                         Mới nhất
                       </button>
                       <button
                         onClick={() => handleSortChange('price', 'asc')}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                          sort === 'price' && order === 'asc'
-                            ? 'bg-green-100 text-green-800'
-                            : 'hover:bg-gray-100'
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                          currentSort === 'price' && currentOrder === 'asc'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : 'hover:bg-gray-100 border border-transparent'
                         }`}
                       >
                         Giá tăng dần
                       </button>
                       <button
                         onClick={() => handleSortChange('price', 'desc')}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                          sort === 'price' && order === 'desc'
-                            ? 'bg-green-100 text-green-800'
-                            : 'hover:bg-gray-100'
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                          currentSort === 'price' && currentOrder === 'desc'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : 'hover:bg-gray-100 border border-transparent'
                         }`}
                       >
                         Giá giảm dần
                       </button>
                       <button
                         onClick={() => handleSortChange('name', 'asc')}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm ${
-                          sort === 'name' && order === 'asc'
-                            ? 'bg-green-100 text-green-800'
-                            : 'hover:bg-gray-100'
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                          currentSort === 'name' && currentOrder === 'asc'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : 'hover:bg-gray-100 border border-transparent'
                         }`}
                       >
                         Tên A-Z
@@ -203,7 +283,7 @@ const Products = () => {
 
                   {/* Reset Filters */}
                   <button
-                    onClick={resetFilters}
+                    onClick={handleResetFilters}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200"
                   >
                     Xóa bộ lọc
@@ -244,7 +324,7 @@ const Products = () => {
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg mb-4">Không tìm thấy sản phẩm nào</p>
                   <button
-                    onClick={resetFilters}
+                    onClick={handleResetFilters}
                     className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg"
                   >
                     Xem tất cả sản phẩm

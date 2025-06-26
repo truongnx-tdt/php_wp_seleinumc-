@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import productService from '../services/productService';
 
@@ -13,6 +13,7 @@ export const useProducts = (initialParams = {}) => {
     limit: 12,
   });
   const [params, setParams] = useState(initialParams);
+  const isInitialMount = useRef(true);
 
   // Fetch products with custom params
   const fetchProducts = useCallback(async (customParams = {}) => {
@@ -49,6 +50,20 @@ export const useProducts = (initialParams = {}) => {
       setLoading(false);
     }
   }, [params, pagination.page, pagination.limit]);
+
+  // Auto fetch when params or pagination changes
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    fetchProducts();
+  }, [params, pagination.page]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // Fetch featured products
   const fetchFeaturedProducts = useCallback(async (limit = 8) => {
@@ -153,12 +168,6 @@ export const useProducts = (initialParams = {}) => {
     setParams(initialParams);
     setPagination(prev => ({ ...prev, page: 1 }));
   }, [initialParams]);
-
-  // Auto fetch when params or pagination changes (only for normal pagination)
-  useEffect(() => {
-    // Always fetch products when component mounts or params change
-    fetchProducts();
-  }, [fetchProducts]);
 
   return {
     products,
