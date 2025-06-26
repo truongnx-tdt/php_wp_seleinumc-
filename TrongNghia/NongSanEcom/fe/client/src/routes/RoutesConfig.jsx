@@ -6,6 +6,7 @@ import ProductDetailPage from '../pages/Products/ProductDetailPage';
 import CartPage from '../pages/Products/CartPage';
 import CheckoutPage from '../pages/Products/CheckoutPage';
 import OrderDetailPage from '../pages/Products/OrderDetailPage';
+import VNPayReturnPage from '../pages/Products/VNPayReturnPage';
 import Login from '../pages/Auth/Login';
 import Register from '../pages/Auth/Register';
 import AboutPage from '../pages/About/AboutPage';
@@ -24,6 +25,7 @@ const RoutesConfig = () => (
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
+        <Route path="/vnpay-return" element={<VNPayReturnPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<AboutPage />} />

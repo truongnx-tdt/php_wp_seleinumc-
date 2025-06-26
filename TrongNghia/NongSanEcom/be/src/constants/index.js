@@ -19,19 +19,19 @@ export const USER_ROLES = {
 
 // Order Status
 export const ORDER_STATUS = {
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  SHIPPED: 'shipped',
-  DELIVERED: 'delivered',
-  CANCELLED: 'cancelled',
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  SHIPPING: 'Shipping',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 };
 
 // Payment Status
 export const PAYMENT_STATUS = {
-  PENDING: 'pending',
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-  REFUNDED: 'refunded',
+  PENDING: 'Pending',
+  COMPLETED: 'Completed',
+  FAILED: 'Failed',
+  REFUNDED: 'Refunded',
 };
 
 // JWT Configuration

@@ -90,48 +90,60 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
     setLoading(true);
-    try {
-      // Kiểm tra tồn kho trước khi đặt hàng
-      const inventoryCheck = await orderService.checkInventory();
-      if (inventoryCheck.hasIssues) {
-        const issueMessages = inventoryCheck.issues
-          .filter(issue => issue.type === 'insufficient')
-          .map(issue => `${issue.productName}: Chỉ còn ${issue.available}, yêu cầu ${issue.requested}`)
-          .join(', ');
-        
-        toast.error(`Không đủ hàng trong kho: ${issueMessages}`);
-        // Refresh cart để cập nhật số lượng sản phẩm
-        await fetchCart();
-        return;
-      }
 
-      // Save new address if requested
-      if (useCustomAddress && saveNewAddress) {
-        await saveNewAddressToProfile();
-      }
+    try {
+      // Kiểm tra tồn kho trước
+      await orderService.checkInventory();
 
       const orderData = {
         paymentMethod,
-        shippingAddress: getSelectedAddress()
+        ...(useCustomAddress && { shippingAddress: customAddress }),
+        ...(selectedAddressId && !useCustomAddress && { shippingAddressId: selectedAddressId }),
+        ...(saveNewAddress && useCustomAddress && { saveNewAddress: true, newAddress: customAddress })
       };
 
       const order = await orderService.createOrder(orderData);
-      updateCartCount();
-      
-      toast.success('Đặt hàng thành công!');
-      navigate(`/orders/${order._id}`);
-    } catch (error) {
-      // Xử lý lỗi tồn kho
-      if (error.message && error.message.includes('chỉ còn')) {
-        toast.error(error.message);
-        // Refresh cart để cập nhật số lượng sản phẩm
-        await fetchCart();
+
+      // Nếu thanh toán bằng VNPAY, chuyển hướng đến trang thanh toán
+      if (paymentMethod === 'VNPAY') {
+        const vnpayData = {
+          orderId: order._id,
+          amount: Number(order.totalPrice),
+          bankCode: '',
+          language: 'vn'
+        };
+
+        // Gọi API VNPAY để tạo URL thanh toán
+        const response = await fetch('http://localhost:8888/order/create_payment_url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(vnpayData)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.paymentUrl) {
+            // Chuyển hướng đến trang thanh toán VNPAY
+            window.location.href = result.paymentUrl;
+          } else {
+            throw new Error('Không thể tạo URL thanh toán VNPAY');
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Không thể tạo URL thanh toán VNPAY');
+        }
       } else {
-        toast.error('Đặt hàng thất bại: ' + (error.message || 'Lỗi không xác định'));
+        // Thanh toán COD - chuyển đến trang thành công
+        updateCartCount(0);
+        navigate(`/orders/${order._id}`);
+        toast.success('Đặt hàng thành công!');
       }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error(error.message || 'Có lỗi xảy ra khi đặt hàng');
     } finally {
       setLoading(false);
     }
@@ -184,13 +196,13 @@ const CheckoutPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <PageTitle title="Thanh toán" description="Hoàn tất đơn hàng của bạn" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <CustomerInfo user={user} />
-            
+
             <ShippingAddress
               user={user}
               selectedAddressId={selectedAddressId}
@@ -202,7 +214,7 @@ const CheckoutPage = () => {
               onCustomAddressChange={setCustomAddress}
               onSaveNewAddressChange={setSaveNewAddress}
             />
-            
+
             <PaymentMethod
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}

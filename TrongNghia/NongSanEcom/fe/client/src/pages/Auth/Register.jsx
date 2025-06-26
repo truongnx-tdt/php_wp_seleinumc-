@@ -125,9 +125,10 @@ const Register = () => {
               name="phone"
               type="tel"
               label="Số điện thoại"
-              placeholder="Nhập số điện thoại (tùy chọn)"
+              placeholder="Nhập số điện thoại"
               value={form.phone}
               onChange={handleChange}
+              required
             />
 
             <FormInput

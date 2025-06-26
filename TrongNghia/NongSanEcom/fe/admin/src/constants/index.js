@@ -38,8 +38,9 @@ export const API_ENDPOINTS = {
   },
   ORDERS: {
     LIST: '/api/orders',
-    DETAIL: (id) => `/api/orders/${id}`,
+    GET_BY_ID: (id) => `/api/orders/${id}`,
     UPDATE_STATUS: (id) => `/api/orders/${id}/status`,
+    UPDATE_TO_PAID: (id) => `/api/orders/${id}/pay`,
   },
 };
 
@@ -70,11 +71,11 @@ export const PRODUCT_STATUS = {
 
 // Order Status
 export const ORDER_STATUS = {
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  SHIPPING: 'shipping',
-  DELIVERED: 'delivered',
-  CANCELLED: 'cancelled',
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  SHIPPING: 'Shipping',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 };
 
 // Local Storage Keys

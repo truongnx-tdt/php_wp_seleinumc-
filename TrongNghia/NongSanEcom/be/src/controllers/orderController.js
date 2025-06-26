@@ -14,6 +14,7 @@ import { ERROR_MESSAGES, ORDER_STATUS } from '../constants/index.js';
 import { logger } from '../utils/logger.js';
 import Cart from '../models/Cart.js';
 import User from '../models/User.js';
+import { json } from 'express';
 
 /**
  * @desc    Create new order from cart
@@ -108,22 +109,22 @@ export const addOrderItems = asyncHandler(async (req, res) => {
           _id: item.product._id,
           countInStock: { $gte: item.quantity } // Chỉ update nếu đủ hàng
         },
-        { 
+        {
           $inc: { countInStock: -item.quantity }
         },
-        { 
+        {
           new: true,
           runValidators: true
         }
       );
-      
+
       if (!result) {
         throw new Error(`Sản phẩm "${item.product.name}" không đủ hàng hoặc đã bị xóa`);
       }
-      
+
       return result;
     });
-    
+
     await Promise.all(updatePromises);
 
     // Xóa giỏ hàng
@@ -143,11 +144,11 @@ export const addOrderItems = asyncHandler(async (req, res) => {
       error: error.message,
       userId: userId
     });
-    
+
     // Nếu có lỗi, thử rollback bằng cách cộng lại số lượng sản phẩm
     if (error.message.includes('không đủ hàng') || error.message.includes('đã bị xóa')) {
       try {
-        const rollbackPromises = cart.items.map(item => 
+        const rollbackPromises = cart.items.map(item =>
           Product.findByIdAndUpdate(
             item.product._id,
             { $inc: { countInStock: item.quantity } }
@@ -156,13 +157,13 @@ export const addOrderItems = asyncHandler(async (req, res) => {
         await Promise.all(rollbackPromises);
         logger.info('Inventory rollback completed', { userId });
       } catch (rollbackError) {
-        logger.error('Inventory rollback failed', { 
-          error: rollbackError.message, 
-          userId 
+        logger.error('Inventory rollback failed', {
+          error: rollbackError.message,
+          userId
         });
       }
     }
-    
+
     throw error;
   }
 });
@@ -210,16 +211,41 @@ export const getMyOrders = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const getOrders = asyncHandler(async (req, res) => {
-  const { status = '', search = '' } = req.query;
+  const {
+    status = '',
+    search = '',
+    paymentMethod = '',
+    dateFrom = '',
+    dateTo = ''
+  } = req.query;
   const paginationParams = parsePaginationParams(req.query);
 
   // Build filter
   const filter = {};
+
   if (status) {
     filter.status = status;
   }
+
+  if (paymentMethod) {
+    filter.paymentMethod = paymentMethod;
+  }
+
+  if (dateFrom || dateTo) {
+    filter.createdAt = {};
+    if (dateFrom) {
+      filter.createdAt.$gte = new Date(dateFrom);
+    }
+    if (dateTo) {
+      filter.createdAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
+    }
+  }
+
   if (search) {
+    // Nếu search là ObjectId hợp lệ thì tìm theo _id, còn lại thì regex cho name/email
+    const isObjectId = search.match(/^[0-9a-fA-F]{24}$/);
     filter.$or = [
+      ...(isObjectId ? [{ _id: search }] : []),
       { 'user.name': { $regex: search, $options: 'i' } },
       { 'user.email': { $regex: search, $options: 'i' } },
     ];
@@ -235,10 +261,10 @@ export const getOrders = asyncHandler(async (req, res) => {
   // Populate user data
   const populatedOrders = await Order.populate(result.data, {
     path: 'user',
-    select: 'name email',
+    select: 'name email phone',
   });
 
-  return successResponse(res, {
+  res.status(200).json({
     orders: populatedOrders,
     pagination: result.pagination,
   });
@@ -253,9 +279,15 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
-    order.isPaid = true;
-    order.paidAt = Date.now();
-    order.paymentResult = { // This data would come from the payment provider (e.g. PayPal, Stripe)
+    // Cho phép cập nhật isPaid theo FE gửi lên
+    if (typeof req.body.isPaid === 'boolean') {
+      order.isPaid = req.body.isPaid;
+      order.paidAt = req.body.isPaid ? Date.now() : null;
+    } else {
+      order.isPaid = true;
+      order.paidAt = Date.now();
+    }
+    order.paymentResult = {
       id: req.body.id,
       status: req.body.status,
       update_time: req.body.update_time,
@@ -302,6 +334,7 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
   const order = await Order.findById(req.params.id);
 
   if (!order) {
@@ -313,6 +346,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     return validationErrorResponse(res, { status: 'Invalid order status' });
   }
 
+  const oldStatus = order.status;
   order.status = status;
 
   // Update related fields based on status
@@ -331,7 +365,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   logger.info('Order status updated', {
     orderId: order._id,
     updatedBy: req.user._id,
-    oldStatus: order.status,
+    oldStatus: oldStatus,
     newStatus: status,
   });
 

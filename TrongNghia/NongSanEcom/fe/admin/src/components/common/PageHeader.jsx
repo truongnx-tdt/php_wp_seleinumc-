@@ -19,6 +19,7 @@ const PageHeader = ({
             <p className="mt-1 text-gray-600">{subtitle}</p>
           )}
         </div>
+        <div className="flex gap-2">
         {action && (
           <Button 
             variant="primary" 
@@ -29,6 +30,19 @@ const PageHeader = ({
             {actionLabel}
           </Button>
         )}
+        {action && (
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              window.location.reload();
+            }}
+            disabled={actionDisabled}
+            className="w-full sm:w-auto"
+          >
+            Reload
+          </Button>
+          )}
+        </div>
       </div>
       {children}
     </div>
