@@ -156,11 +156,9 @@ export const useProducts = (initialParams = {}) => {
 
   // Auto fetch when params or pagination changes (only for normal pagination)
   useEffect(() => {
-    // Only auto-fetch if no custom params are being used
-    if (Object.keys(params).length === 0) {
-      fetchProducts();
-    }
-  }, [fetchProducts, params]);
+    // Always fetch products when component mounts or params change
+    fetchProducts();
+  }, [fetchProducts]);
 
   return {
     products,

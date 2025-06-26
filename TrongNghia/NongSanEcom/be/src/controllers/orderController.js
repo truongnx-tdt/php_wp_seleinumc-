@@ -26,7 +26,7 @@ import User from '../models/User.js';
  * @access  Private
  */
 export const addOrderItems = asyncHandler(async (req, res) => {
-  const { paymentMethod, shippingAddressId } = req.body;
+  const { paymentMethod, shippingAddressId, shippingAddress: customAddress } = req.body;
   const userId = req.user._id;
 
   const cart = await Cart.findOne({ user: userId }).populate('items.product');
@@ -38,9 +38,21 @@ export const addOrderItems = asyncHandler(async (req, res) => {
   }
 
   let shippingAddress;
-  if (shippingAddressId) {
+  
+  // Nếu có địa chỉ tùy chỉnh từ frontend
+  if (customAddress) {
+    shippingAddress = customAddress;
+  } 
+  // Nếu có shippingAddressId, lấy từ user addresses
+  else if (shippingAddressId) {
     shippingAddress = user.addresses.id(shippingAddressId);
-  } else {
+    if (!shippingAddress) {
+      res.status(400);
+      throw new Error('Shipping address not found');
+    }
+  } 
+  // Lấy địa chỉ mặc định
+  else {
     shippingAddress = user.addresses.find(addr => addr.isDefault);
   }
 
