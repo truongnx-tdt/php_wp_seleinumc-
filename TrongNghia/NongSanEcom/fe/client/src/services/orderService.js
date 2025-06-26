@@ -6,9 +6,16 @@ const ORDER_ENDPOINTS = {
   GET_BY_ID: '/api/orders', // base, will append /:id
   GET_MY_ORDERS: '/api/orders/myorders',
   UPDATE_TO_PAID: '/api/orders', // base, will append /:id/pay
+  CHECK_INVENTORY: '/api/orders/check-inventory',
 };
 
 export const orderService = {
+  // Kiểm tra tồn kho trước khi đặt hàng
+  checkInventory: async () => {
+    const response = await API.post(ORDER_ENDPOINTS.CHECK_INVENTORY);
+    return response.data;
+  },
+
   // Tạo đơn hàng mới
   createOrder: async (orderData) => {
     const response = await API.post(ORDER_ENDPOINTS.CREATE, orderData);

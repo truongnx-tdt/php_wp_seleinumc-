@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useUser } from '../../UserContext';
 import cartService from '../../services/cartService';
 import Spinner from '../../components/Spinner';
-import { FaShoppingCart, FaPlus, FaMinus, FaArrowLeft } from 'react-icons/fa';
+import { FaShoppingCart, FaPlus, FaMinus, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 
 const CartPage = () => {
   const { user, updateCartCount } = useUser();
@@ -83,6 +83,27 @@ const CartPage = () => {
     navigate('/checkout');
   };
 
+  // Kiểm tra vấn đề tồn kho
+  const checkInventoryIssues = () => {
+    if (!cart?.items) return [];
+    
+    const issues = [];
+    cart.items.forEach(item => {
+      const product = item.product;
+      if (product.countInStock < item.quantity) {
+        issues.push({
+          product: product.name,
+          available: product.countInStock,
+          requested: item.quantity
+        });
+      }
+    });
+    return issues;
+  };
+
+  const inventoryIssues = checkInventoryIssues();
+  const hasInventoryIssues = inventoryIssues.length > 0;
+
   if (!user) return null;
   if (loading) return <Spinner text="Đang tải giỏ hàng..." />;
   if (error) return <div className="text-center text-red-500 py-10">{error}</div>;
@@ -117,6 +138,25 @@ const CartPage = () => {
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-green-100">
         <h1 className="text-3xl font-bold text-green-700 mb-6">Giỏ hàng của bạn</h1>
+        
+        {/* Inventory Warnings */}
+        {hasInventoryIssues && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center text-red-700 mb-2">
+              <FaExclamationTriangle className="mr-2" />
+              <span className="font-semibold">Cảnh báo: Một số sản phẩm không đủ hàng</span>
+            </div>
+            {inventoryIssues.map((issue, index) => (
+              <div key={index} className="text-sm text-red-600">
+                • {issue.product}: Chỉ còn {issue.available} trong kho, bạn yêu cầu {issue.requested}
+              </div>
+            ))}
+            <div className="text-sm text-red-600 mt-2">
+              Vui lòng điều chỉnh số lượng hoặc xóa sản phẩm không đủ hàng để tiếp tục thanh toán.
+            </div>
+          </div>
+        )}
+        
         <div className="flex justify-between items-center mb-4">
           <div className="text-gray-700 font-medium">Tổng số sản phẩm: {items.reduce((sum, i) => sum + i.quantity, 0)}</div>
           <button
@@ -131,12 +171,22 @@ const CartPage = () => {
           {items.map(item => {
             const price = getCurrentPrice(item.product);
             const maxQty = item.product.countInStock;
+            const hasStockIssue = maxQty < item.quantity;
+            
             return (
-              <div key={item.product._id} className="flex flex-col sm:flex-row items-center gap-4 py-4">
+              <div key={item.product._id} className={`flex flex-col sm:flex-row items-center gap-4 py-4 ${hasStockIssue ? 'bg-red-50 border-l-4 border-red-400' : ''}`}>
                 <img src={item.product.images?.[0] || 'https://source.unsplash.com/100x100/?fruit,vegetable'} alt={item.product.name} className="w-20 h-20 object-cover rounded" />
                 <div className="flex-1 w-full">
                   <div className="font-semibold text-lg">{item.product.name}</div>
                   <div className="text-gray-500 text-sm">Đơn giá: <span className="font-medium text-green-700">{price.toLocaleString()}₫</span></div>
+                  
+                  {/* Stock Warning */}
+                  {hasStockIssue && (
+                    <div className="text-red-600 text-sm font-medium mt-1">
+                      ⚠️ Chỉ còn {maxQty} trong kho, không đủ {item.quantity}
+                    </div>
+                  )}
+                  
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => handleUpdateQty(item.product._id, item.quantity - 1, maxQty)}
@@ -154,7 +204,7 @@ const CartPage = () => {
                         const val = Number(e.target.value);
                         if (val >= 1 && val <= maxQty) handleUpdateQty(item.product._id, val, maxQty);
                       }}
-                      className="w-16 text-center border border-green-300 rounded px-2 py-1 focus:ring-2 focus:ring-green-200"
+                      className={`w-16 text-center border rounded px-2 py-1 focus:ring-2 ${hasStockIssue ? 'border-red-300 focus:ring-red-200' : 'border-green-300 focus:ring-green-200'}`}
                       disabled={updatingQty === item.product._id}
                     />
                     <button
@@ -164,7 +214,9 @@ const CartPage = () => {
                     >
                       <FaPlus />
                     </button>
-                    <span className="ml-2 text-xs text-gray-400">Còn lại: {maxQty}</span>
+                    <span className={`ml-2 text-xs ${hasStockIssue ? 'text-red-500' : 'text-gray-400'}`}>
+                      Còn lại: {maxQty}
+                    </span>
                   </div>
                 </div>
                 <div className="font-bold text-green-700 text-lg min-w-[100px] text-right">{(price * item.quantity).toLocaleString()}₫</div>
@@ -185,9 +237,14 @@ const CartPage = () => {
         </div>
         <button
           onClick={handleCheckout}
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-4 rounded-lg text-lg font-bold transition"
+          className={`w-full py-4 rounded-lg text-lg font-bold transition ${
+            hasInventoryIssues 
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+          }`}
+          disabled={hasInventoryIssues}
         >
-          Thanh toán
+          {hasInventoryIssues ? 'Không thể thanh toán - Vui lòng kiểm tra tồn kho' : 'Thanh toán'}
         </button>
       </div>
     </div>

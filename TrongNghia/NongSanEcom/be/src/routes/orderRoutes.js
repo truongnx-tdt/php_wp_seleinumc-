@@ -6,6 +6,7 @@ import {
   updateOrderStatus,
   getMyOrders,
   getOrders,
+  checkInventory,
 } from '../controllers/orderController.js';
 import { protect, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
@@ -20,6 +21,19 @@ const router = express.Router();
  *   description: Order management
  */
 
+/**
+ * @swagger
+ * /api/orders/check-inventory:
+ *   post:
+ *     summary: Check inventory before placing order
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Inventory check completed
+ */
+router.post('/check-inventory', protect, checkInventory);
 
 /**
  * @swagger

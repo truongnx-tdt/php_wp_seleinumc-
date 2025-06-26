@@ -94,6 +94,20 @@ const CheckoutPage = () => {
 
     setLoading(true);
     try {
+      // Kiểm tra tồn kho trước khi đặt hàng
+      const inventoryCheck = await orderService.checkInventory();
+      if (inventoryCheck.hasIssues) {
+        const issueMessages = inventoryCheck.issues
+          .filter(issue => issue.type === 'insufficient')
+          .map(issue => `${issue.productName}: Chỉ còn ${issue.available}, yêu cầu ${issue.requested}`)
+          .join(', ');
+        
+        toast.error(`Không đủ hàng trong kho: ${issueMessages}`);
+        // Refresh cart để cập nhật số lượng sản phẩm
+        await fetchCart();
+        return;
+      }
+
       // Save new address if requested
       if (useCustomAddress && saveNewAddress) {
         await saveNewAddressToProfile();
@@ -110,7 +124,14 @@ const CheckoutPage = () => {
       toast.success('Đặt hàng thành công!');
       navigate(`/orders/${order._id}`);
     } catch (error) {
-      toast.error('Đặt hàng thất bại: ' + (error.message || 'Lỗi không xác định'));
+      // Xử lý lỗi tồn kho
+      if (error.message && error.message.includes('chỉ còn')) {
+        toast.error(error.message);
+        // Refresh cart để cập nhật số lượng sản phẩm
+        await fetchCart();
+      } else {
+        toast.error('Đặt hàng thất bại: ' + (error.message || 'Lỗi không xác định'));
+      }
     } finally {
       setLoading(false);
     }
