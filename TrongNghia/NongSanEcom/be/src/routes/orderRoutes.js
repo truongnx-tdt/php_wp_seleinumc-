@@ -7,6 +7,9 @@ import {
   getMyOrders,
   getOrders,
   checkInventory,
+  getAdminDashboardStats,
+  getRevenueByYear,
+  getRevenueByDayInMonth,
 } from '../controllers/orderController.js';
 import { protect, requireStaffOrAdmin } from '../middleware/authMiddleware.js';
 
@@ -245,5 +248,96 @@ router.route('/:id/pay').put(protect, updateOrderToPaid);
  *                       type: string
  */
 router.route('/:id/status').put(protect, requireStaffOrAdmin, updateOrderStatus);
+
+/**
+ * @swagger
+ * /api/orders/dashboard/admin-stats:
+ *   get:
+ *     summary: Get admin dashboard stats
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin dashboard stats retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalOrders:
+ *                   type: integer
+ *                 totalRevenue:
+ *                   type: number
+ *                 averageOrderValue:
+ *                   type: number
+ *                 topSellingProducts:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       product:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           price:
+ *                             type: number
+ *                           stock:
+ *                             type: integer
+ *                           createdAt:
+ *                             type: string
+ *                           updatedAt:
+ *                             type: string
+ *                       quantity:
+ *                         type: integer
+ *                       total:
+ *                         type: number
+ */
+router.get('/dashboard/admin-stats', protect, getAdminDashboardStats);
+
+/**
+ * @swagger
+ * /api/orders/dashboard/revenue-by-year:
+ *   get:
+ *     summary: Get revenue by year
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Revenue by year retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 revenue:
+ *                   type: number
+ */
+router.get('/dashboard/revenue-by-year', protect, getRevenueByYear);
+
+/**
+ * @swagger
+ * /api/orders/dashboard/revenue-by-day-in-month:
+ *   get:
+ *     summary: Get revenue by day in month
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Revenue by day in month retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 revenue:
+ *                   type: number
+ */
+router.get('/dashboard/revenue-by-day-in-month', protect, getRevenueByDayInMonth);
 
 export default router;

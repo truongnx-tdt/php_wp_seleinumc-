@@ -15,6 +15,7 @@ import { logger } from '../utils/logger.js';
 import Cart from '../models/Cart.js';
 import User from '../models/User.js';
 import { json } from 'express';
+import mongoose from 'mongoose';
 
 /**
  * @desc    Create new order from cart
@@ -259,10 +260,10 @@ export const getOrders = asyncHandler(async (req, res) => {
   );
 
   // Populate user data
-  const populatedOrders = await Order.populate(result.data, {
-    path: 'user',
-    select: 'name email phone',
-  });
+  const populatedOrders = await Order.populate(result.data, [
+    { path: 'user', select: 'name email phone' },
+    { path: 'lastModifiedBy', select: 'name email' }
+  ]);
 
   res.status(200).json({
     orders: populatedOrders,
@@ -293,6 +294,7 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
       update_time: req.body.update_time,
       email_address: req.body.email_address
     };
+    order.lastModifiedBy = req.user._id;
 
     const updatedOrder = await order.save();
     res.json(updatedOrder);
@@ -359,6 +361,8 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     order.isDelivered = true;
     order.deliveredAt = Date.now();
   }
+
+  order.lastModifiedBy = req.user._id;
 
   const updatedOrder = await order.save();
 
@@ -461,4 +465,116 @@ export const checkInventory = asyncHandler(async (req, res) => {
     issues,
     message: hasIssues ? 'Có vấn đề với tồn kho' : 'Tất cả sản phẩm đều có đủ hàng'
   });
+});
+
+// Dashboard stats for admin
+export const getAdminDashboardStats = asyncHandler(async (req, res) => {
+  // Chỉ cho admin
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const firstDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+  // Tổng doanh thu (đã thanh toán)
+  const totalRevenue = await Order.aggregate([
+    { $match: { isPaid: true } },
+    { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+  ]);
+
+  // Doanh thu hôm nay
+  const todayRevenue = await Order.aggregate([
+    { $match: { isPaid: true, paidAt: { $gte: today, $lt: tomorrow } } },
+    { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+  ]);
+
+  // Đơn hàng hôm nay
+  const todayOrders = await Order.countDocuments({ createdAt: { $gte: today, $lt: tomorrow } });
+
+  // Đơn hàng trong tháng
+  const monthOrders = await Order.countDocuments({ createdAt: { $gte: firstDayOfMonth, $lt: firstDayOfNextMonth } });
+
+  // Top sản phẩm bán chạy
+  const topProducts = await Order.aggregate([
+    { $unwind: "$orderItems" },
+    { $match: { isPaid: true } },
+    { $group: {
+      _id: "$orderItems.product",
+      name: { $first: "$orderItems.name" },
+      totalSold: { $sum: "$orderItems.qty" },
+      totalRevenue: { $sum: { $multiply: ["$orderItems.qty", "$orderItems.price"] } }
+    }},
+    { $sort: { totalSold: -1 } },
+    { $limit: 5 }
+  ]);
+
+  res.json({
+    totalRevenue: totalRevenue[0]?.total || 0,
+    todayRevenue: todayRevenue[0]?.total || 0,
+    todayOrders,
+    monthOrders,
+    topProducts
+  });
+});
+
+// Doanh thu theo tháng của năm
+export const getRevenueByYear = asyncHandler(async (req, res) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const year = parseInt(req.query.year) || new Date().getFullYear();
+  const start = new Date(year, 0, 1);
+  const end = new Date(year + 1, 0, 1);
+
+  // Lấy doanh thu từng tháng
+  const monthly = await Order.aggregate([
+    { $match: { isPaid: true, paidAt: { $gte: start, $lt: end } } },
+    { $group: {
+      _id: { month: { $month: "$paidAt" } },
+      total: { $sum: "$totalPrice" }
+    } }
+  ]);
+
+  // Map về mảng 12 tháng
+  const revenueByMonth = Array(12).fill(0);
+  monthly.forEach(item => {
+    revenueByMonth[item._id.month - 1] = item.total;
+  });
+
+  res.json({ year, revenueByMonth });
+});
+
+// Doanh thu theo ngày trong tháng
+export const getRevenueByDayInMonth = asyncHandler(async (req, res) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const year = parseInt(req.query.year) || new Date().getFullYear();
+  const month = parseInt(req.query.month) || (new Date().getMonth() + 1); // 1-based
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  // Lấy doanh thu từng ngày
+  const daily = await Order.aggregate([
+    { $match: { isPaid: true, paidAt: { $gte: start, $lt: end } } },
+    { $group: {
+      _id: { day: { $dayOfMonth: "$paidAt" } },
+      total: { $sum: "$totalPrice" }
+    } }
+  ]);
+
+  // Map về mảng số ngày trong tháng
+  const revenueByDay = Array(daysInMonth).fill(0);
+  daily.forEach(item => {
+    revenueByDay[item._id.day - 1] = item.total;
+  });
+
+  res.json({ year, month, revenueByDay });
 }); 

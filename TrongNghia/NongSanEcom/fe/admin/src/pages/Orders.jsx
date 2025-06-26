@@ -186,6 +186,7 @@ function OrderTableRow({ order, index, onView, onStatusUpdate, statusOptions, on
       </td>
       <td className="py-3 px-4">{getStatusBadge(order.status)}</td>
       <td className="py-3 px-4">{new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
+      <td className="py-3 px-4">{order.lastModifiedBy ? (order.lastModifiedBy.name || order.lastModifiedBy.email) : '-'}</td>
       <td className="py-3 px-4 text-center">
         <Button variant="secondary" size="sm" onClick={() => onView(order)}><FaEye className="w-4 h-4" /></Button>
         {order.isPaid && statusOptions.length > 0 && (
@@ -285,6 +286,7 @@ const Orders = () => {
     { key: 'isPaid', header: 'Thanh toán' },
     { key: 'status', header: 'Trạng thái' },
     { key: 'createdAt', header: 'Ngày đặt' },
+    { key: 'lastModifiedBy', header: 'Người sửa', render: (v, row) => row.lastModifiedBy ? (row.lastModifiedBy.name || row.lastModifiedBy.email) : '-' },
     { key: 'actions', header: 'Hành động', align: 'center' },
   ];
 

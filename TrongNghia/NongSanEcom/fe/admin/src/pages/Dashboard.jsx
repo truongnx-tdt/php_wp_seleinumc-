@@ -1,8 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useApi } from '../hooks/useApi';
 import { PageHeader, LoadingSpinner } from '../components/common';
 import { API_ENDPOINTS } from '../constants';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,6 +26,26 @@ const Dashboard = () => {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [adminStats, setAdminStats] = useState(null);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [revenueByMonth, setRevenueByMonth] = useState(Array(12).fill(0));
+  const [revenueLoading, setRevenueLoading] = useState(false);
+  const [revenueByDay, setRevenueByDay] = useState([]);
+  const [revenueDayLoading, setRevenueDayLoading] = useState(false);
+
+  // Tạo danh sách năm từ 2022 đến năm hiện tại (hook phải ở ngoài if)
+  const yearOptions = useMemo(() => {
+    const now = new Date().getFullYear();
+    const arr = [];
+    for (let y = now; y >= 2022; y--) arr.push(y);
+    return arr;
+  }, []);
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -45,13 +76,195 @@ const Dashboard = () => {
     loadDashboardData();
   }, [get]);
 
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      setAdminLoading(true);
+      get('/api/orders/dashboard/admin-stats')
+        .then((data) => setAdminStats(data))
+        .catch(() => setAdminStats(null))
+        .finally(() => setAdminLoading(false));
+    }
+  }, [user, get]);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      setRevenueLoading(true);
+      get(`/api/orders/dashboard/revenue-by-year?year=${selectedYear}`)
+        .then((data) => setRevenueByMonth(data.revenueByMonth))
+        .catch(() => setRevenueByMonth(Array(12).fill(0)))
+        .finally(() => setRevenueLoading(false));
+    }
+  }, [user, get, selectedYear]);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      setRevenueDayLoading(true);
+      get(`/api/orders/dashboard/revenue-by-day-in-month?year=${selectedYear}&month=${selectedMonth}`)
+        .then((data) => setRevenueByDay(data.revenueByDay))
+        .catch(() => setRevenueByDay([]))
+        .finally(() => setRevenueDayLoading(false));
+    }
+  }, [user, get, selectedYear, selectedMonth]);
+
   if (loading) {
     return <LoadingSpinner text="Đang tải dữ liệu dashboard..." />;
   }
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
-  };
+  if (user?.role === 'admin') {
+    if (adminLoading) return <LoadingSpinner text="Đang tải dữ liệu dashboard..." />;
+    return (
+      <div className="max-w-7xl mx-auto">
+        <PageHeader title="Dashboard" subtitle={`Chào mừng ${user?.name}! Tổng quan quản trị`} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="text-sm text-gray-600 mb-1">Tổng doanh thu</div>
+            <div className="text-2xl font-bold text-green-600">{adminStats?.totalRevenue?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="text-sm text-gray-600 mb-1">Doanh thu hôm nay</div>
+            <div className="text-2xl font-bold text-blue-600">{adminStats?.todayRevenue?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="text-sm text-gray-600 mb-1">Đơn hàng hôm nay</div>
+            <div className="text-2xl font-bold text-orange-600">{adminStats?.todayOrders}</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="text-sm text-gray-600 mb-1">Đơn hàng trong tháng</div>
+            <div className="text-2xl font-bold text-purple-600">{adminStats?.monthOrders}</div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Doanh thu theo tháng</h3>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+            >
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+          {revenueLoading ? <LoadingSpinner text="Đang tải biểu đồ doanh thu..." /> : (
+            <Bar
+              data={{
+                labels: [
+                  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+                ],
+                datasets: [
+                  {
+                    label: `Doanh thu năm ${selectedYear}`,
+                    data: revenueByMonth,
+                    backgroundColor: 'rgba(59,130,246,0.7)',
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { position: 'top' },
+                  title: { display: false },
+                },
+              }}
+              height={320}
+            />
+          )}
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Doanh thu theo ngày trong tháng</h3>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={selectedMonth}
+              onChange={e => setSelectedMonth(Number(e.target.value))}
+            >
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
+              ))}
+            </select>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+            >
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+          {revenueDayLoading ? <LoadingSpinner text="Đang tải biểu đồ doanh thu..." /> : (
+            <Bar
+              data={{
+                labels: revenueByDay.map((_, i) => `Ngày ${i + 1}`),
+                datasets: [
+                  {
+                    label: `Doanh thu tháng ${selectedMonth}/${selectedYear}`,
+                    data: revenueByDay,
+                    backgroundColor: 'rgba(34,197,94,0.7)',
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { position: 'top' },
+                  title: { display: false },
+                },
+              }}
+              height={320}
+            />
+          )}
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top sản phẩm bán chạy</h3>
+          {adminStats?.topProducts?.length > 0 ? (
+            <Bar
+              data={{
+                labels: adminStats.topProducts.map(p => p.name),
+                datasets: [
+                  {
+                    label: 'Số lượng bán',
+                    data: adminStats.topProducts.map(p => p.totalSold),
+                    backgroundColor: 'rgba(34,197,94,0.7)',
+                  },
+                  {
+                    label: 'Doanh thu',
+                    data: adminStats.topProducts.map(p => p.totalRevenue),
+                    backgroundColor: 'rgba(59,130,246,0.5)',
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { position: 'top' },
+                  title: { display: false },
+                },
+              }}
+              height={300}
+            />
+          ) : (
+            <div className="text-gray-500">Chưa có dữ liệu sản phẩm bán chạy.</div>
+          )}
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin hệ thống</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Vai trò hiện tại:</span>
+              <span className="font-medium">Quản trị viên</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Email:</span>
+              <span className="font-medium">{user?.email}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Ngày tham gia:</span>
+              <span className="font-medium">{user?.createdAt ? formatDate(user.createdAt) : '-'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusLabel = (status) => {
     switch (status) {

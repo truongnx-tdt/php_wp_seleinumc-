@@ -40,6 +40,7 @@ const orderSchema = new mongoose.Schema({
   },
   isDelivered: { type: Boolean, default: false },
   deliveredAt: { type: Date },
+  lastModifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);
