@@ -133,14 +133,14 @@ const useUserFilters = () => {
       fetchUsers();
     }
   };
-  const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
+  const handleBan = async (id) => {
+    if (window.confirm('Bạn có chắc muốn khóa người dùng này?')) {
       try {
-        await deleteApi(API_ENDPOINTS.USERS.DELETE(id));
-        toast.success('Xóa người dùng thành công');
+        await put(API_ENDPOINTS.USERS.UPDATE(id), { status: 'banned' });
+        toast.success('khóa người dùng thành công');
         fetchUsers();
       } catch (err) {
-        // toast.error('Không thể xóa người dùng!');
+        toast.error('Không thể khóa người dùng!');
       }
     }
   };
@@ -159,7 +159,7 @@ const useUserFilters = () => {
     showModal,
     editingUser,
     handleSubmit,
-    handleDelete,
+    handleBan,
     formData,
     setFormData,
     handleFormChange,

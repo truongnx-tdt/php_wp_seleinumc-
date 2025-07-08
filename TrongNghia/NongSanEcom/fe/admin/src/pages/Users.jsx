@@ -19,7 +19,7 @@ const Users = () => {
     showModal,
     editingUser,
     handleSubmit,
-    handleDelete,
+    handleBan,
     formData,
     setFormData,
     handleFormChange,
@@ -49,7 +49,7 @@ const Users = () => {
       render: (_, user) => (
         <div className="space-x-2">
           <Button variant="secondary" size="sm" onClick={() => openEditModal(user)}>Sửa</Button>
-          <Button variant="danger" size="sm" onClick={() => handleDelete(user._id)} disabled={user.role === 'admin'}>Xóa</Button>
+          <Button variant="danger" size="sm" onClick={() => handleBan(user._id)} disabled={user.role === 'admin'}>Khóa TK</Button>
         </div>
       )
     }
