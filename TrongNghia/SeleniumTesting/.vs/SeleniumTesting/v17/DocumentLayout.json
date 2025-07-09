@@ -1,30 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\",
+  "WorkspaceRootPath": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\php_wp_seleinumc-\\trongnghia\\seleniumtesting\\seleniumtesting\\testcases\\newstest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\testcases\\newstest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\tools\\facebookautoliketool.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\tools\\facebookautoliketool.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\php_wp_seleinumc-\\trongnghia\\seleniumtesting\\seleniumtesting\\testcases\\membertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\testcases\\membertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\models\\task.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\models\\task.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\php_wp_seleinumc-\\trongnghia\\seleniumtesting\\seleniumtesting\\testcases\\articletest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\testcases\\articletest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\php_wp_seleinumc-\\trongnghia\\seleniumtesting\\seleniumtesting\\pages\\memberpage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\pages\\memberpage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\php_wp_seleinumc-\\trongnghia\\seleniumtesting\\seleniumtesting\\testcases\\logintest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\testcases\\logintest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\php_wp_seleinumc-\\trongnghia\\seleniumtesting\\seleniumtesting\\pages\\newspage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\pages\\newspage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|d:\\techshop-tdtdev\\trongnghia\\seleniumtesting\\seleniumtesting\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{564AE291-C8BA-4663-8DE5-E2AD9F6EFB5B}|SeleniumTesting\\SeleniumTesting.csproj|solutionrelative:seleniumtesting\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,91 +22,44 @@
       "DocumentGroups": [
         {
           "DockedWidth": 306,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ArticleTest.cs",
-              "DocumentMoniker": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\ArticleTest.cs",
-              "RelativeDocumentMoniker": "SeleniumTesting\\TestCases\\ArticleTest.cs",
-              "ToolTip": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\ArticleTest.cs",
-              "RelativeToolTip": "SeleniumTesting\\TestCases\\ArticleTest.cs",
-              "ViewState": "AQIAAJwAAAAAAAAAAAA7wKoAAAAZAAAA",
+              "DocumentIndex": 1,
+              "Title": "Task.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Models\\Task.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\Models\\Task.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Models\\Task.cs",
+              "RelativeToolTip": "SeleniumTesting\\Models\\Task.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-14T12:42:16.94Z",
+              "WhenOpened": "2025-07-09T09:43:08.11Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "LoginTest.cs",
-              "DocumentMoniker": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\LoginTest.cs",
-              "RelativeDocumentMoniker": "SeleniumTesting\\TestCases\\LoginTest.cs",
-              "ToolTip": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\LoginTest.cs",
-              "RelativeToolTip": "SeleniumTesting\\TestCases\\LoginTest.cs",
-              "ViewState": "AQIAAAMAAAAAAAAAAAAAABgAAAAsAAAA",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Program.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\Program.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Program.cs",
+              "RelativeToolTip": "SeleniumTesting\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-14T12:34:50.256Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-01T06:44:05.05Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "NewsTest.cs",
-              "DocumentMoniker": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\NewsTest.cs",
-              "RelativeDocumentMoniker": "SeleniumTesting\\TestCases\\NewsTest.cs",
-              "ToolTip": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\NewsTest.cs",
-              "RelativeToolTip": "SeleniumTesting\\TestCases\\NewsTest.cs",
-              "ViewState": "AQIAAB0AAAAAAAAAAAAYwC4AAAAhAAAA",
+              "Title": "FacebookAutoLikeTool.cs",
+              "DocumentMoniker": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Tools\\FacebookAutoLikeTool.cs",
+              "RelativeDocumentMoniker": "SeleniumTesting\\Tools\\FacebookAutoLikeTool.cs",
+              "ToolTip": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Tools\\FacebookAutoLikeTool.cs",
+              "RelativeToolTip": "SeleniumTesting\\Tools\\FacebookAutoLikeTool.cs",
+              "ViewState": "AgIAACcDAAAAAAAAAAAnwDwDAABHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-13T10:03:08.581Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "NewsPage.cs",
-              "DocumentMoniker": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\NewsPage.cs",
-              "RelativeDocumentMoniker": "SeleniumTesting\\Pages\\NewsPage.cs",
-              "ToolTip": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\NewsPage.cs",
-              "RelativeToolTip": "SeleniumTesting\\Pages\\NewsPage.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAMwC0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-13T09:46:18.768Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "MemberTest.cs",
-              "DocumentMoniker": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\MemberTest.cs",
-              "RelativeDocumentMoniker": "SeleniumTesting\\TestCases\\MemberTest.cs",
-              "ToolTip": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\TestCases\\MemberTest.cs",
-              "RelativeToolTip": "SeleniumTesting\\TestCases\\MemberTest.cs",
-              "ViewState": "AQIAACoAAAAAAAAAAAAYwAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-13T09:06:17.336Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "MemberPage.cs",
-              "DocumentMoniker": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\MemberPage.cs",
-              "RelativeDocumentMoniker": "SeleniumTesting\\Pages\\MemberPage.cs",
-              "ToolTip": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\Pages\\MemberPage.cs",
-              "RelativeToolTip": "SeleniumTesting\\Pages\\MemberPage.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-13T09:03:48.141Z",
+              "WhenOpened": "2025-07-01T06:36:53.038Z",
               "EditorCaption": ""
             }
           ]

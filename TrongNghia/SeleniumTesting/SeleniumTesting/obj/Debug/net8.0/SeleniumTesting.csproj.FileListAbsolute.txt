@@ -341,3 +341,4 @@ D:\php_wp_seleinumc-\TrongNghia\SeleniumTesting\SeleniumTesting\obj\Debug\net8.0
 D:\php_wp_seleinumc-\TrongNghia\SeleniumTesting\SeleniumTesting\obj\Debug\net8.0\SeleniumTesting.pdb
 D:\php_wp_seleinumc-\TrongNghia\SeleniumTesting\SeleniumTesting\obj\Debug\net8.0\SeleniumTesting.genruntimeconfig.cache
 D:\php_wp_seleinumc-\TrongNghia\SeleniumTesting\SeleniumTesting\obj\Debug\net8.0\ref\SeleniumTesting.dll
+D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\obj\Debug\net8.0\SeleniumTesting.sourcelink.json

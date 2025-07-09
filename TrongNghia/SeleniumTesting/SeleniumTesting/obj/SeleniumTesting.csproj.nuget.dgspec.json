@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj": {}
+    "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj": {}
   },
   "projects": {
-    "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj": {
+    "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj",
+        "projectUniqueName": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj",
         "projectName": "SeleniumTesting",
-        "projectPath": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj",
-        "packagesPath": "C:\\Users\\xuant\\.nuget\\packages\\",
-        "outputPath": "D:\\php_wp_seleinumc-\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\obj\\",
+        "projectPath": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\SeleniumTesting.csproj",
+        "packagesPath": "C:\\Users\\AD\\.nuget\\packages\\",
+        "outputPath": "D:\\Techshop-TDTDev\\TrongNghia\\SeleniumTesting\\SeleniumTesting\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\xuant\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\AD\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,8 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "https://www.nuget.org/api/v2/": {}
         },
         "frameworks": {
           "net8.0": {
@@ -44,7 +43,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -95,7 +95,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

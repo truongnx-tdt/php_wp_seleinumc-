@@ -1,0 +1,4 @@
+[2025-07-02 10:00:29] Exception: Lỗi khi thiết lập cookie: The HTTP request to the remote WebDriver server for URL http://localhost:43074/session/c013ac69fb227b18ed2fbacb25689e7c/url timed out after 60 seconds.
+   at MyNamespace.FbTool.SetFacebookCookie() in D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\Tools\FacebookAutoLikeTool.cs:line 191
+   at MyNamespace.FbTool.Run() in D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\Tools\FacebookAutoLikeTool.cs:line 68
+
