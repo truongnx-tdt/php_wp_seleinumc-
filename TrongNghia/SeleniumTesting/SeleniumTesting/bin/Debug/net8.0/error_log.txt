@@ -2,3 +2,8 @@
    at MyNamespace.FbTool.SetFacebookCookie() in D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\Tools\FacebookAutoLikeTool.cs:line 191
    at MyNamespace.FbTool.Run() in D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\Tools\FacebookAutoLikeTool.cs:line 68
 
+[2025-07-10 09:38:01] Exception: Lỗi khi thiết lập cookie: unknown error: net::ERR_CONNECTION_REFUSED
+  (Session info: chrome=138.0.7204.100)
+   at MyNamespace.FbTool.SetFacebookCookie() in D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\Tools\FacebookAutoLikeTool.cs:line 223
+   at MyNamespace.FbTool.Run() in D:\Techshop-TDTDev\TrongNghia\SeleniumTesting\SeleniumTesting\Tools\FacebookAutoLikeTool.cs:line 78
+

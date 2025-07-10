@@ -28,6 +28,7 @@ namespace MyNamespace
         private static string _cookieTtc = "";
         private static HttpClient _httpClient;
 
+        private static List<string> _tasksFailure = new List<string>();
 
         public void Run()
         {
@@ -133,7 +134,7 @@ namespace MyNamespace
                 var options = new ChromeOptions();
 
                 // Basic options
-                //options.AddArgument("--headless=new");        // Chạy Chrome ngầm
+                options.AddArgument("--headless=new");        // Chạy Chrome ngầm
                 options.AddArgument("--disable-blink-features=AutomationControlled");
                 options.AddArgument("--disable-extensions");
                 options.AddArgument("--no-sandbox");
@@ -536,7 +537,24 @@ namespace MyNamespace
                         if (isRunning && currentBatchCount > 0)
                         {
                             Console.WriteLine("💤 Nghỉ 5s trước khi tiếp tục...\n");
-                            Task.Run(async () => { await LoginWithToken("c80ef8be6c318b249aa266181b881b4a"); });
+                            await LoginWithToken("c80ef8be6c318b249aa266181b881b4a");
+                            Thread.Sleep(5000);
+                            if (_tasksFailure.Count > 0)
+                            {
+                                Console.WriteLine("🔄 Đang xử lý các nhiệm vụ thất bại...");
+                                foreach (var failedTask in _tasksFailure)
+                                {
+                                    try
+                                    {
+                                        await ClaimReward(failedTask);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"❌ Lỗi khi xử lý nhiệm vụ thất bại: {ex.Message}");
+                                    }
+                                }
+                                _tasksFailure.Clear();
+                            }
                             Thread.Sleep(5000);
                         }
                     }
@@ -1092,7 +1110,19 @@ namespace MyNamespace
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ Nhận thưởng thành công: {responseContent}");
+                    if (responseContent.Contains("mess"))
+                    {
+                        Console.WriteLine($"🎉 Nhận thưởng thành công: {responseContent}");
+                    }
+                    else if (responseContent.Contains("error"))
+                    {
+                        Console.WriteLine($"❌ Lỗi khi nhận thưởng: {responseContent}");
+                        if (!_tasksFailure.Contains(taskId))
+                        {
+                            _tasksFailure.Add(taskId); // Lưu nhiệm vụ thất bại
+                        }
+                    }
+
                 }
                 else
                 {
