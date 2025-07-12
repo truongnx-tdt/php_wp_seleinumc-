@@ -14,6 +14,17 @@ export const useProducts = (initialParams = {}) => {
   });
   const [params, setParams] = useState(initialParams);
   const isInitialMount = useRef(true);
+  const prevInitialParams = useRef(initialParams);
+
+  // Cập nhật params khi initialParams thay đổi (từ URL params)
+  useEffect(() => {
+    // Chỉ cập nhật nếu initialParams thực sự thay đổi
+    const hasChanged = JSON.stringify(prevInitialParams.current) !== JSON.stringify(initialParams);
+    if (hasChanged) {
+      prevInitialParams.current = initialParams;
+      setParams(initialParams);
+    }
+  }, [initialParams]);
 
   // Fetch products with custom params
   const fetchProducts = useCallback(async (customParams = {}) => {

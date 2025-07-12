@@ -29,7 +29,7 @@ const Products = () => {
     setCurrentOrder(order);
   }, [sort, order]);
 
-  // Sử dụng custom hooks
+  // Sử dụng custom hooks với params từ URL
   const {
     products,
     loading,
@@ -63,10 +63,21 @@ const Products = () => {
       return;
     }
     
-    // Chỉ cập nhật URL nếu có params thực sự
-    const hasParams = keyword || category || (sort !== 'createdAt') || (order !== 'desc') || page > 1;
+    // Chỉ cập nhật URL nếu có params thực sự và khác với URL hiện tại
+    const currentParams = new URLSearchParams(searchParams);
+    const currentKeyword = currentParams.get('keyword') || '';
+    const currentCategory = currentParams.get('category') || '';
+    const currentSort = currentParams.get('sort') || 'createdAt';
+    const currentOrder = currentParams.get('order') || 'desc';
+    const currentPage = currentParams.get('page') || '1';
     
-    if (hasParams) {
+    const hasKeyword = currentKeyword !== keyword;
+    const hasCategory = currentCategory !== category;
+    const hasSort = currentSort !== sort;
+    const hasOrder = currentOrder !== order;
+    const hasPage = currentPage !== page.toString();
+    
+    if (hasKeyword || hasCategory || hasSort || hasOrder || hasPage) {
       const newParams = new URLSearchParams();
       if (keyword) newParams.set('keyword', keyword);
       if (category) newParams.set('category', category);
@@ -76,18 +87,26 @@ const Products = () => {
       
       isUpdatingURL.current = true;
       setSearchParams(newParams);
-    } else {
-      // Nếu không có params, xóa URL params
-      isUpdatingURL.current = true;
-      setSearchParams({});
     }
-  }, [keyword, category, sort, order, page, setSearchParams]);
+  }, [keyword, category, sort, order, page, setSearchParams, searchParams]);
 
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const searchKeyword = formData.get('search');
+    
+    // Cập nhật URL
+    isUpdatingURL.current = true;
+    const newParams = new URLSearchParams(searchParams);
+    if (searchKeyword) {
+      newParams.set('keyword', searchKeyword);
+    } else {
+      newParams.delete('keyword');
+    }
+    setSearchParams(newParams);
+    
+    // Cập nhật params trong hook
     updateParams({ keyword: searchKeyword });
   };
 
@@ -150,12 +169,6 @@ const Products = () => {
     // Reset pagination về trang 1
     changePage(1);
     
-    // Reset form search input
-    const searchInput = document.querySelector('input[name="search"]');
-    if (searchInput) {
-      searchInput.value = '';
-    }
-    
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -209,6 +222,20 @@ const Products = () => {
                           type="text"
                           name="search"
                           defaultValue={keyword}
+                          onBlur={(e) => {
+                            // Cập nhật URL khi user blur khỏi input
+                            const newValue = e.target.value;
+                            if (newValue !== keyword) {
+                              isUpdatingURL.current = true;
+                              const newParams = new URLSearchParams(searchParams);
+                              if (newValue) {
+                                newParams.set('keyword', newValue);
+                              } else {
+                                newParams.delete('keyword');
+                              }
+                              setSearchParams(newParams);
+                            }
+                          }}
                           placeholder="Tìm sản phẩm..."
                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         />

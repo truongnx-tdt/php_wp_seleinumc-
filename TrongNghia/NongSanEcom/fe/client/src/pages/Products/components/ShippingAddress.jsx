@@ -10,11 +10,23 @@ const ShippingAddress = ({
   onAddressSelection,
   onCustomAddressToggle,
   onCustomAddressChange,
-  onSaveNewAddressChange
+  onSaveNewAddressChange,
+  showError = false
 }) => {
   const handleCustomAddressChange = (field, value) => {
     onCustomAddressChange({ ...customAddress, [field]: value });
   };
+
+  // Kiểm tra xem user đã chọn địa chỉ chưa
+  const hasSelectedAddress = selectedAddressId && !useCustomAddress;
+  const hasValidCustomAddress = useCustomAddress && 
+    customAddress.street && customAddress.street.trim() !== '' &&
+    customAddress.city && customAddress.city.trim() !== '' &&
+    customAddress.district && customAddress.district.trim() !== '' &&
+    customAddress.ward && customAddress.ward.trim() !== '' &&
+    customAddress.postalCode && customAddress.postalCode.trim() !== '';
+
+  const showAddressError = showError && !hasSelectedAddress && !hasValidCustomAddress;
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -68,6 +80,15 @@ const ShippingAddress = ({
           onSaveNewAddressChange={onSaveNewAddressChange}
         />
       )}
+
+      {/* Error message */}
+      {showAddressError && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">
+            Vui lòng chọn địa chỉ có sẵn hoặc điền địa chỉ giao hàng mới
+          </p>
+        </div>
+      )}
     </div>
   );
 };
@@ -118,73 +139,105 @@ const AddressOption = ({ address, isSelected, onSelect }) => (
   </label>
 );
 
-const CustomAddressForm = ({ customAddress, saveNewAddress, onAddressChange, onSaveNewAddressChange }) => (
-  <div className="space-y-4">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <AddressInput
-        label="Đường/Phố *"
-        value={customAddress.street}
-        onChange={(value) => onAddressChange('street', value)}
-        placeholder="Nhập tên đường/phố"
-      />
-      <AddressInput
-        label="Phường/Xã *"
-        value={customAddress.ward}
-        onChange={(value) => onAddressChange('ward', value)}
-        placeholder="Nhập phường/xã"
-      />
-      <AddressInput
-        label="Quận/Huyện *"
-        value={customAddress.district}
-        onChange={(value) => onAddressChange('district', value)}
-        placeholder="Nhập quận/huyện"
-      />
-      <AddressInput
-        label="Tỉnh/Thành phố *"
-        value={customAddress.city}
-        onChange={(value) => onAddressChange('city', value)}
-        placeholder="Nhập tỉnh/thành phố"
-      />
-      <AddressInput
-        label="Mã bưu điện"
-        value={customAddress.postalCode}
-        onChange={(value) => onAddressChange('postalCode', value)}
-        placeholder="Nhập mã bưu điện"
-      />
-      <AddressInput
-        label="Quốc gia"
-        value={customAddress.country}
-        onChange={(value) => onAddressChange('country', value)}
-      />
-    </div>
+const CustomAddressForm = ({ customAddress, saveNewAddress, onAddressChange, onSaveNewAddressChange }) => {
+  const requiredFields = ['street', 'city', 'district', 'ward', 'postalCode'];
+  
+  const isFieldValid = (fieldName) => {
+    return customAddress[fieldName] && customAddress[fieldName].trim() !== '';
+  };
+  
+  const getFieldError = (fieldName) => {
+    return !isFieldValid(fieldName) ? 'Trường này là bắt buộc' : '';
+  };
 
-    {/* Save Address Option */}
-    <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-      <input
-        type="checkbox"
-        id="saveAddress"
-        checked={saveNewAddress}
-        onChange={(e) => onSaveNewAddressChange(e.target.checked)}
-        className="mr-3"
-      />
-      <label htmlFor="saveAddress" className="flex items-center text-sm text-blue-800 cursor-pointer">
-        <FaSave className="mr-2" />
-        Lưu địa chỉ này vào profile để sử dụng sau này
-      </label>
-    </div>
-  </div>
-);
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <AddressInput
+          label="Đường/Phố *"
+          value={customAddress.street}
+          onChange={(value) => onAddressChange('street', value)}
+          placeholder="Nhập tên đường/phố"
+          error={getFieldError('street')}
+          required
+        />
+        <AddressInput
+          label="Phường/Xã *"
+          value={customAddress.ward}
+          onChange={(value) => onAddressChange('ward', value)}
+          placeholder="Nhập phường/xã"
+          error={getFieldError('ward')}
+          required
+        />
+        <AddressInput
+          label="Quận/Huyện *"
+          value={customAddress.district}
+          onChange={(value) => onAddressChange('district', value)}
+          placeholder="Nhập quận/huyện"
+          error={getFieldError('district')}
+          required
+        />
+        <AddressInput
+          label="Tỉnh/Thành phố *"
+          value={customAddress.city}
+          onChange={(value) => onAddressChange('city', value)}
+          placeholder="Nhập tỉnh/thành phố"
+          error={getFieldError('city')}
+          required
+        />
+        <AddressInput
+          label="Mã bưu điện *"
+          value={customAddress.postalCode}
+          onChange={(value) => onAddressChange('postalCode', value)}
+          placeholder="Nhập mã bưu điện"
+          error={getFieldError('postalCode')}
+          required
+        />
+        <AddressInput
+          label="Quốc gia"
+          value={customAddress.country}
+          onChange={(value) => onAddressChange('country', value)}
+        />
+      </div>
 
-const AddressInput = ({ label, value, onChange, placeholder }) => (
+      {/* Save Address Option */}
+      <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+        <input
+          type="checkbox"
+          id="saveAddress"
+          checked={saveNewAddress}
+          onChange={(e) => onSaveNewAddressChange(e.target.checked)}
+          className="mr-3"
+        />
+        <label htmlFor="saveAddress" className="flex items-center text-sm text-blue-800 cursor-pointer">
+          <FaSave className="mr-2" />
+          Lưu địa chỉ này vào profile để sử dụng sau này
+        </label>
+      </div>
+    </div>
+  );
+};
+
+const AddressInput = ({ label, value, onChange, placeholder, error, required }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+        error 
+          ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+          : 'border-gray-300 focus:border-green-500'
+      }`}
       placeholder={placeholder}
     />
+    {error && (
+      <p className="mt-1 text-sm text-red-600">{error}</p>
+    )}
   </div>
 );
 

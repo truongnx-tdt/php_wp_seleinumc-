@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useUser } from '../UserContext';
 import { NAV_LINKS, AUTH_LINKS, ROUTES } from '../constants/navigation';
@@ -17,7 +17,15 @@ const NavigationLink = ({ to, children, className = '', onClick }) => (
 );
 
 const SearchBar = ({ onSearch }) => {
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Đồng bộ với URL params khi component mount hoặc location thay đổi
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const keywordFromURL = urlParams.get('keyword') || '';
+    setSearchTerm(keywordFromURL);
+  }, [location.search]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

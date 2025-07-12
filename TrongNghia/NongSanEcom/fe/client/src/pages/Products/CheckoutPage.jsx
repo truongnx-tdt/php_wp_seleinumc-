@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useUser } from '../../UserContext';
 import cartService from '../../services/cartService';
 import orderService from '../../services/orderService';
-import userService from '../../services/userService';
+import { userService } from '../../services/userService';
 import Spinner from '../../components/Spinner';
 import PageTitle from '../../components/PageTitle';
 import CustomerInfo from './components/CustomerInfo';
@@ -21,6 +21,7 @@ const CheckoutPage = () => {
   const [useCustomAddress, setUseCustomAddress] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [saveNewAddress, setSaveNewAddress] = useState(false);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [customAddress, setCustomAddress] = useState({
     street: '',
     city: '',
@@ -65,9 +66,19 @@ const CheckoutPage = () => {
   };
 
   const validateForm = () => {
+    setShowValidationErrors(true);
+    
     if (!paymentMethod) {
       toast.error('Vui lòng chọn phương thức thanh toán');
       return false;
+    }
+
+    // Kiểm tra xem user có địa chỉ nào không
+    if (!user.addresses || user.addresses.length === 0) {
+      if (!useCustomAddress) {
+        toast.error('Bạn chưa có địa chỉ giao hàng. Vui lòng điền địa chỉ mới.');
+        return false;
+      }
     }
 
     const address = getSelectedAddress();
@@ -77,10 +88,26 @@ const CheckoutPage = () => {
     }
 
     if (useCustomAddress) {
-      const requiredFields = ['street', 'city', 'district', 'ward'];
-      const missingFields = requiredFields.filter(field => !customAddress[field]);
+      const requiredFields = ['street', 'city', 'district', 'ward', 'postalCode'];
+      const missingFields = requiredFields.filter(field => !customAddress[field] || customAddress[field].trim() === '');
+      
       if (missingFields.length > 0) {
-        toast.error('Vui lòng điền đầy đủ thông tin địa chỉ');
+        const fieldNames = {
+          street: 'đường/phố',
+          city: 'tỉnh/thành phố',
+          district: 'quận/huyện',
+          ward: 'phường/xã',
+          postalCode: 'mã bưu điện'
+        };
+        
+        const missingFieldNames = missingFields.map(field => fieldNames[field]).join(', ');
+        toast.error(`Vui lòng điền đầy đủ thông tin: ${missingFieldNames}`);
+        return false;
+      }
+    } else {
+      // Kiểm tra nếu user chọn địa chỉ có sẵn nhưng không có địa chỉ nào
+      if (!selectedAddressId) {
+        toast.error('Vui lòng chọn địa chỉ giao hàng');
         return false;
       }
     }
@@ -90,17 +117,38 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form trước khi call API
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
       // Kiểm tra tồn kho trước
       await orderService.checkInventory();
 
+      // Nếu user muốn lưu địa chỉ mới vào profile
+      if (saveNewAddress && useCustomAddress) {
+        try {
+          const updatedAddresses = await userService.addAddress({
+            ...customAddress,
+            isDefault: false
+          });
+          // Cập nhật user context với địa chỉ mới
+          updateUser({ ...user, addresses: updatedAddresses });
+          toast.success('Đã lưu địa chỉ mới vào profile');
+        } catch (error) {
+          console.error('Lỗi khi lưu địa chỉ:', error);
+          toast.error('Không thể lưu địa chỉ vào profile, nhưng vẫn tiếp tục đặt hàng');
+        }
+      }
+
       const orderData = {
         paymentMethod,
         ...(useCustomAddress && { shippingAddress: customAddress }),
-        ...(selectedAddressId && !useCustomAddress && { shippingAddressId: selectedAddressId }),
-        ...(saveNewAddress && useCustomAddress && { saveNewAddress: true, newAddress: customAddress })
+        ...(selectedAddressId && !useCustomAddress && { shippingAddressId: selectedAddressId })
       };
 
       const order = await orderService.createOrder(orderData);
@@ -149,18 +197,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const saveNewAddressToProfile = async () => {
-    try {
-      const updatedAddresses = await userService.addAddress({
-        ...customAddress,
-        isDefault: false
-      });
-      updateUser({ ...user, addresses: updatedAddresses });
-      toast.success('Đã lưu địa chỉ mới vào profile');
-    } catch (error) {
-      console.error('Lỗi khi lưu địa chỉ:', error);
-    }
-  };
+
 
   const handleAddressSelection = (addressId) => {
     setSelectedAddressId(addressId);
@@ -213,11 +250,13 @@ const CheckoutPage = () => {
               onCustomAddressToggle={handleCustomAddressToggle}
               onCustomAddressChange={setCustomAddress}
               onSaveNewAddressChange={setSaveNewAddress}
+              showError={showValidationErrors}
             />
 
             <PaymentMethod
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
+              showError={showValidationErrors}
             />
           </div>
 

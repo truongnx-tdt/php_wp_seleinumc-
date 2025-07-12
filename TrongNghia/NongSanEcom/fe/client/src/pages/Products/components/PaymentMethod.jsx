@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaCreditCard, FaMoneyBillWave } from 'react-icons/fa';
 
-const PaymentMethod = ({ paymentMethod, onPaymentMethodChange }) => {
+const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, showError = false }) => {
   const paymentOptions = [
     {
       value: 'COD',
@@ -36,6 +36,15 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange }) => {
           />
         ))}
       </div>
+
+      {/* Error message */}
+      {showError && !paymentMethod && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">
+            Vui lòng chọn phương thức thanh toán
+          </p>
+        </div>
+      )}
     </div>
   );
 };
